@@ -44,6 +44,6 @@ flowchart TD
 
 ## Leitura do diagrama
 
-Nesta fase, o QuimiPort só troca informação com pessoas — os seis perfis de usuário já mapeados em [`../dominio.md`](../dominio.md). Não há integração com sistemas externos (autoridade portuária, órgãos ambientais, rastreamento de embarcações): essas trocas são citadas na seção "Quais partes do sistema poderão evoluir nas próximas fases" de `../dominio.md` e retomadas em [`../decisoes-arquiteturais.md`](../decisoes-arquiteturais.md) (ADR-04, evolução para backend) como pontos de extensão futuros, não como parte do escopo atual.
+Nesta fase, o QuimiPort só troca informação com pessoas — os seis perfis de usuário já mapeados em [`../dominio.md`](../dominio.md). Não existe, ainda, integração com sistemas externos (autoridade portuária, órgãos ambientais, rastreamento de embarcações): essas trocas aparecem na seção "Quais partes do sistema poderão evoluir nas próximas fases" de `../dominio.md` e são retomadas em [`../decisoes-arquiteturais.md`](../decisoes-arquiteturais.md) (ADR-04, evolução para backend) como pontos de extensão futuros, não como parte do escopo atual.
 
 Este diagrama é a visão "de fora para dentro" do sistema; o diagrama de arquitetura em camadas, em [`../arquitetura.md`](../arquitetura.md), é a visão complementar "de dentro" — como o QuimiPort se organiza internamente para atender a essas interações.

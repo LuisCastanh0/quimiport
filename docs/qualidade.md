@@ -1,14 +1,14 @@
 # Plano de Qualidade de Software — QuimiPort
 
-Este documento cobre a seção 8 do PDF do Tech Challenge: o plano de qualidade do QuimiPort e como o projeto poderá ser testado nas próximas fases. Ele parte diretamente das regras de negócio ([`regras-de-negocio.md`](regras-de-negocio.md)) e dos casos de uso ([`casos-de-uso.md`](casos-de-uso.md)) já documentados.
+Este documento cobre a seção 8 do PDF do Tech Challenge: o plano de qualidade do QuimiPort e como o projeto poderá ser testado nas próximas fases. Ele parte direto das regras de negócio ([`regras-de-negocio.md`](regras-de-negocio.md)) e dos casos de uso ([`casos-de-uso.md`](casos-de-uso.md)) já documentados.
 
 ## Regras de negócio que precisam ser testadas
 
-Todas as regras RN01–RN13 de [`regras-de-negocio.md`](regras-de-negocio.md) são invariantes de agregado e, por isso, candidatas a teste unitário — nenhuma delas deve depender de infraestrutura para ser validada. A tabela de cenários de teste, mais abaixo, mapeia cada uma delas a pelo menos um cenário.
+Todas as regras RN01–RN13 de [`regras-de-negocio.md`](regras-de-negocio.md) são invariantes de agregado e, por isso, são candidatas naturais a teste unitário — nenhuma delas deveria depender de infraestrutura para ser validada. A tabela de cenários de teste, logo mais abaixo, mapeia cada uma delas a pelo menos um cenário.
 
 ## Casos de uso mais críticos
 
-Criticidade aqui significa: o quanto uma falha nesse caso de uso compromete segurança ou conformidade regulatória, não apenas experiência de uso.
+Aqui, criticidade significa o quanto uma falha nesse caso de uso compromete segurança ou conformidade regulatória — não apenas a experiência de uso.
 
 | Caso de uso | Por que é crítico | Prioridade de teste |
 |---|---|---|

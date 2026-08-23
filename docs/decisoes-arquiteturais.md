@@ -1,6 +1,6 @@
 # Decisões Arquiteturais — QuimiPort
 
-Este documento cobre a seção 10 do PDF do Tech Challenge: as principais decisões arquiteturais do projeto, registradas no formato de ADR (*Architecture Decision Record*) — Contexto, Decisão, Alternativas consideradas e Consequências. Onde a decisão já foi aplicada em outro documento, este ADR referencia o local e foca no "porquê"; não repete o que já foi descrito estruturalmente.
+Este documento cobre a seção 10 do PDF do Tech Challenge: as principais decisões arquiteturais do projeto, registradas no formato de ADR (*Architecture Decision Record*) — Contexto, Decisão, Alternativas consideradas e Consequências. Quando a decisão já foi aplicada em outro documento, o ADR referencia o local e foca no "porquê", sem repetir o que já foi descrito estruturalmente ali.
 
 ## ADR-01 — Separar domínio, aplicação e infraestrutura em camadas
 
@@ -9,7 +9,7 @@ Este documento cobre a seção 10 do PDF do Tech Challenge: as principais decis�
 | **Contexto** | O QuimiPort concentra regras de segurança e conformidade (RN01–RN13) que precisam ser confiáveis e testáveis isoladamente, e o projeto será evoluído por várias fases (frontend, backend, banco de dados, possivelmente microsserviços). |
 | **Decisão** | Separar o código em quatro camadas — `Domain`, `Application`, `Infrastructure`, `Interfaces` — com dependência sempre apontando para dentro, conforme detalhado em [`arquitetura.md`](arquitetura.md). |
 | **Alternativas consideradas** | (a) Estrutura única por *feature*, sem separação de camadas — mais rápida para prototipar, mas mistura regra de negócio com detalhes de persistência/apresentação, dificultando testar o domínio isoladamente e trocar peças de infraestrutura depois. (b) MVC clássico — mais simples, porém tende a acumular regra de negócio no controller ou no model ligado ao banco, contrariando o objetivo de negócio-primeiro do desafio. |
-| **Consequências** | Positivo: domínio testável sem infraestrutura, trocas de tecnologia (banco, framework web) não tocam a regra de negócio, curva de entendimento clara para quem entra no projeto depois. Negativo: mais arquivos e indireção do que uma estrutura simples, custo que só se paga em um projeto que de fato vai evoluir — o que é exatamente o caso aqui. |
+| **Consequências** | No lado positivo: domínio testável sem infraestrutura, trocas de tecnologia (banco, framework web) que não tocam a regra de negócio, e uma curva de entendimento mais clara para quem entra no projeto depois. No lado negativo: mais arquivos e indireção do que uma estrutura simples exigiria — um custo que só se paga em um projeto que de fato vai evoluir, o que é exatamente o caso aqui. |
 
 ## ADR-02 — Concentrar regras de negócio no domínio, não nos casos de uso
 

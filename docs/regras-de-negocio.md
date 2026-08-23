@@ -1,10 +1,10 @@
 # Regras de Negócio — QuimiPort
 
-Este documento consolida as regras de negócio do QuimiPort, na linha do que pede o PDF do Tech Challenge: descrevê-las de forma clara e indicar onde deverão ficar concentradas na arquitetura futura da aplicação. As regras abaixo derivam da lista de exemplos do PDF e das entidades/agregados definidos em [`dominio.md`](dominio.md); a coluna de casos de uso referencia [`casos-de-uso.md`](casos-de-uso.md).
+Este documento consolida as regras de negócio do QuimiPort, seguindo o que pede o PDF do Tech Challenge: descrevê-las de forma clara e indicar onde cada uma deve ficar concentrada na arquitetura futura da aplicação. As regras abaixo vêm da lista de exemplos do PDF e das entidades/agregados já definidos em [`dominio.md`](dominio.md); a coluna de casos de uso referencia [`casos-de-uso.md`](casos-de-uso.md).
 
 ## Princípio de concentração das regras
 
-Seguindo DDD, as regras de negócio são tratadas como **invariantes do domínio** e ficam concentradas nos próprios agregados/entidades (`Carga Química` e `Produto Químico`), não nos casos de uso. Os casos de uso (camada de aplicação) orquestram chamadas ao domínio — buscam dados via repositório, invocam os métodos do agregado — mas não reimplementam a validação. Essa separação é detalhada em [`arquitetura.md`](arquitetura.md); aqui o foco é registrar **qual regra existe** e **em qual entidade/agregado ela deve viver**.
+Seguindo DDD, tratamos as regras de negócio como **invariantes do domínio**, concentradas nos próprios agregados/entidades (`Carga Química` e `Produto Químico`), e não nos casos de uso. Os casos de uso (camada de aplicação) apenas orquestram chamadas ao domínio — buscam dados via repositório, invocam os métodos do agregado — mas não reimplementam a validação. Essa separação está detalhada em [`arquitetura.md`](arquitetura.md); o foco aqui é registrar **qual regra existe** e **em qual entidade/agregado ela deve viver**.
 
 ## Tabela consolidada
 

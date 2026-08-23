@@ -1,19 +1,25 @@
 # QuimiPort
 
+## Equipe
+
+| Nome | RM |
+|---|---|
+| Luis Gustavo Aguirre Castanho | rm375479 |
+
 Sistema para gestão inicial de cargas químicas em ambiente portuário, inspirado nas operações do Porto de Santos.
 
-> **Fase atual: Fase 1 — Fundamentos, Domínio e Arquitetura.**
-> Esta entrega **não** contém aplicação funcional (sem frontend, backend ou banco de dados implementados). O objetivo é estabelecer a base técnica — domínio, regras de negócio e arquitetura — que será evoluída nas próximas fases.
+> **Fase 1 — Fundamentos, Domínio e Arquitetura.**
+> Esta entrega **não** contém aplicação funcional. O foco é estruturar a base (domínio, regras de negócio e arquitetura) para evoluir nas próximas fases sem precisar retrabalhar o que já foi definido.
 
 ## Contexto do problema
 
-O Porto de Santos é um dos principais pontos de movimentação de cargas do Brasil. Entre os diversos tipos de carga, produtos químicos exigem controle cuidadoso: documentação adequada, classificação de risco e acompanhamento técnico.
+O Porto de Santos é um dos principais pontos de movimentação de cargas do Brasil, e entre os diversos tipos de carga que passam por lá, os produtos químicos são os que exigem mais cuidado: documentação adequada, classificação de risco e acompanhamento técnico.
 
-Hoje, esse controle é feito de forma manual ou descentralizada, o que dificulta a consulta de informações, o acompanhamento do status das cargas e a validação de regras de segurança.
+Na prática, esse controle ainda é feito de forma manual ou descentralizada em boa parte dos casos, o que dificulta consultar informações rapidamente, acompanhar o status de cada carga e validar as regras de segurança antes de liberar a movimentação.
 
 ## Objetivo da aplicação
 
-O QuimiPort é um sistema para gestão de cargas químicas portuárias que permite:
+A ideia é que o QuimiPort seja um sistema de gestão de cargas químicas portuárias capaz de:
 
 - Cadastrar produtos químicos;
 - Registrar cargas químicas e associá-las a um produto;
@@ -35,7 +41,7 @@ O QuimiPort é um sistema para gestão de cargas químicas portuárias que permi
 | [`docs/typescript-javascript.md`](docs/typescript-javascript.md) | Decisões de uso de TypeScript e JavaScript Avançado |
 | [`docs/decisoes-arquiteturais.md`](docs/decisoes-arquiteturais.md) | Decisões arquiteturais e roadmap de evolução (backend, frontend, mobile, microsserviços) |
 | [`docs/qualidade.md`](docs/qualidade.md) | Plano de qualidade de software e cenários de teste planejados |
-| [`docs/diagramas/`](docs/diagramas/) | Diagrama de domínio (agregados/entidades) e fluxo de transição de status da carga, entre outros |
+| [`docs/diagramas/`](docs/diagramas/) | Diagrama de domínio (agregados/entidades), fluxo de transição de status da carga, entre outros |
 
 ## Estrutura do repositório
 
@@ -51,15 +57,12 @@ quimiport/
     ├── decisoes-arquiteturais.md
     ├── qualidade.md
     └── diagramas/
-        ├── dominio.md          # Diagrama de agregados/entidades (obrigatório)
-        └── fluxo-status.md     # Fluxo de transição de status da carga (obrigatório)
+        ├── dominio.md  # Diagrama de agregados/entidades
+        ├── fluxo-status.md
+        ├── entidade-relacionamento.md
+        └── contexto.md
+        
 ```
-
-## Equipe
-
-| Nome | RM |
-|---|---|
-| Luis Gustavo Aguirre Castanho | rm375479 |
 
 ## Vídeo demonstrativo
 

@@ -1,10 +1,10 @@
 # Arquitetura — QuimiPort
 
-Este documento cobre as seções 5 e 6 do PDF do Tech Challenge: a arquitetura proposta para o QuimiPort e a organização inicial de pastas/responsabilidades. As justificativas de cada decisão (por que camadas separadas, por que TypeScript, como evoluir) ficam em [`decisoes-arquiteturais.md`](decisoes-arquiteturais.md); aqui o foco é descrever **como** a arquitetura se estrutura.
+Este documento cobre as seções 5 e 6 do PDF do Tech Challenge: a arquitetura proposta para o QuimiPort e a organização inicial de pastas/responsabilidades. As justificativas de cada decisão (por que separar em camadas, por que TypeScript, como evoluir) ficam em [`decisoes-arquiteturais.md`](decisoes-arquiteturais.md); a ideia aqui é descrever **como** a arquitetura se estrutura.
 
 ## Estilo arquitetural
 
-O QuimiPort adota uma **arquitetura em camadas inspirada em Clean Architecture / Ports & Adapters, com DDD tático concentrado no núcleo do domínio**. A escolha decorre diretamente do que já foi modelado em [`dominio.md`](dominio.md) e [`regras-de-negocio.md`](regras-de-negocio.md): as regras de negócio (RN01–RN13) vivem como invariantes dentro dos agregados (`Carga Química`, `Produto Químico`, `Responsável Técnico`, `Área de Armazenamento`), e a arquitetura só formaliza onde cada peça do sistema se encaixa em torno desse núcleo.
+Optamos por uma **arquitetura em camadas inspirada em Clean Architecture / Ports & Adapters, com DDD tático concentrado no núcleo do domínio**. Essa escolha decorre diretamente do que já foi modelado em [`dominio.md`](dominio.md) e [`regras-de-negocio.md`](regras-de-negocio.md): as regras de negócio (RN01–RN13) vivem como invariantes dentro dos agregados (`Carga Química`, `Produto Químico`, `Responsável Técnico`, `Área de Armazenamento`), e a arquitetura basicamente formaliza onde cada peça do sistema se encaixa em torno desse núcleo.
 
 Quatro camadas, com dependência sempre apontando para dentro (em direção ao domínio):
 
@@ -46,7 +46,7 @@ flowchart TD
     F2 -. implementa .-> D3
 ```
 
-**Regra de dependência:** setas sólidas indicam "depende de"; setas pontilhadas indicam "implementa a interface de". `Domain` não tem nenhuma seta saindo dele em direção a outra camada — é o centro da arquitetura e pode ser testado isoladamente, sem banco de dados, sem framework web, sem infraestrutura nenhuma. `Infrastructure` depende do `Domain` (implementa suas interfaces), e não o contrário — isso é o que permite trocar a persistência em memória por um banco real, nas próximas fases, sem alterar uma linha de regra de negócio.
+**Regra de dependência:** setas sólidas indicam "depende de"; setas pontilhadas indicam "implementa a interface de". Note que `Domain` não tem nenhuma seta saindo dele em direção a outra camada — é o centro da arquitetura e por isso pode ser testado isoladamente, sem banco de dados, sem framework web, sem infraestrutura nenhuma. Já `Infrastructure` depende do `Domain` (implementa suas interfaces), e não o contrário. É essa inversão que permite trocar a persistência em memória por um banco real, nas próximas fases, sem mexer em uma linha sequer de regra de negócio.
 
 ## Organização de pastas
 
@@ -126,7 +126,7 @@ quimiport/
 
 ### Por que essa organização
 
-- **Uma pasta por agregado dentro de `domain/`**, e não uma pasta genérica `entities/` — reforça que cada agregado é uma unidade coesa (entidades internas, VOs e porta de repositório vivem juntos), evitando que regras de um agregado vazem para outro.
+- **Uma pasta por agregado dentro de `domain/`**, e não uma pasta genérica `entities/` — assim fica mais claro que cada agregado é uma unidade coesa (entidades internas, VOs e porta de repositório vivem juntos), o que ajuda a evitar que regras de um agregado vazem para outro.
 - **`UC08 — Atualizar status da carga` não tem pasta própria em `application/use-cases/`.** Ele é, na prática, uma transição de estado interna ao agregado `Carga Química` (ex.: um método `transicionarStatus()`), invocada pelos demais casos de uso (UC04, UC05, UC06, UC07, UC09, UC12) — não um caso de uso disparado diretamente por um ator externo. Mantê-lo dentro do domínio, e não como um serviço de aplicação exposto, é consistente com o princípio de concentração de regras definido em [`regras-de-negocio.md`](regras-de-negocio.md).
 - **As interfaces de repositório ficam no `domain/`, não no `infrastructure/`** — é a aplicação do princípio de inversão de dependência: o domínio define o contrato (`ICargaQuimicaRepository`), e a infraestrutura o implementa. Isso é o que possibilita testar os casos de uso com um repositório em memória (fase atual) e trocar por um repositório real (próximas fases) sem alterar domínio nem aplicação.
 - **`interfaces/` e a subpasta `tests/integration/` já existem na estrutura, mas vazias** — o objetivo é deixar claro onde o projeto vai crescer (API REST, banco de dados, testes de integração) sem exigir que essa parte já esteja implementada nesta fase, conforme o próprio PDF define como escopo.

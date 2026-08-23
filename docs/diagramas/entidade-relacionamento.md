@@ -80,4 +80,4 @@ erDiagram
 
 ## Diferença para o diagrama de domínio
 
-Este ER e o [diagrama de domínio](dominio.md) descrevem o mesmo conjunto de conceitos com propósitos diferentes: o diagrama de domínio comunica **regras e comportamento** (o que cada agregado protege, quem é raiz, quem é interno); este ER comunica **estrutura de dados e cardinalidade**, como apoio a um futuro desenho de schema. Nenhum dos dois substitui o outro — o PDF pede os dois porque servem públicos e decisões diferentes.
+Este ER e o [diagrama de domínio](dominio.md) descrevem o mesmo conjunto de conceitos, mas com propósitos diferentes: o diagrama de domínio comunica **regras e comportamento** (o que cada agregado protege, quem é raiz, quem é interno); já este ER comunica **estrutura de dados e cardinalidade**, servindo de apoio a um futuro desenho de schema. Nenhum dos dois substitui o outro — o PDF pede os dois justamente porque atendem a públicos e decisões diferentes.

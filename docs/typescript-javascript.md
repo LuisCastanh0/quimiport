@@ -1,10 +1,10 @@
 # TypeScript e JavaScript Avançado — QuimiPort
 
-Este documento cobre a seção 9 do PDF do Tech Challenge: como JavaScript Avançado e TypeScript serão usados na construção futura do QuimiPort. As decisões aqui se aplicam às entidades, agregados e objetos de valor definidos em [`dominio.md`](dominio.md) e à estrutura de camadas de [`arquitetura.md`](arquitetura.md). Os exemplos são conceituais — ilustram a modelagem planejada, não código de produção.
+Este documento cobre a seção 9 do PDF do Tech Challenge: como JavaScript Avançado e TypeScript serão usados na construção futura do QuimiPort. As decisões aqui se aplicam às entidades, agregados e objetos de valor definidos em [`dominio.md`](dominio.md) e à estrutura de camadas de [`arquitetura.md`](arquitetura.md). Os exemplos são conceituais — servem para ilustrar a modelagem planejada, não são código de produção.
 
 ## Tipagem forte
 
-`strict: true` no `tsconfig.json`, sem uso de `any`. Tipos explícitos nas fronteiras entre camadas (assinaturas de casos de uso, interfaces de repositório, DTOs de entrada/saída); dentro de uma função, o tipo pode ser inferido quando o próprio TypeScript já garante segurança. Nenhum dado primitivo solto representa um conceito de negócio — por isso a quantidade de uma carga não é um `number` avulso, é o objeto de valor `Quantidade` (ver abaixo), que carrega sua própria validação.
+`strict: true` no `tsconfig.json`, sem uso de `any`. Tipos explícitos nas fronteiras entre camadas (assinaturas de casos de uso, interfaces de repositório, DTOs de entrada/saída); dentro de uma função, o tipo pode ficar implícito quando o próprio TypeScript já garante segurança pela inferência. A ideia é que nenhum dado primitivo solto represente um conceito de negócio — por isso a quantidade de uma carga não é um `number` avulso, e sim o objeto de valor `Quantidade` (ver abaixo), que carrega sua própria validação.
 
 ## Interfaces
 
@@ -184,7 +184,7 @@ type Result<T, E> =
   | { sucesso: false; erro: E };
 ```
 
-Exceções (`throw`) ficam reservadas para falhas verdadeiramente excepcionais (infraestrutura indisponível, dado corrompido) — não para o fluxo normal de regras de negócio. A escolha final entre `Result` consistente em todo o domínio ou exceções de domínio tipadas será validada pelo grupo já na implementação, mas a diretriz de não usar exceção para controle de fluxo de negócio está definida desde já.
+Exceções (`throw`) ficam reservadas para falhas verdadeiramente excepcionais (infraestrutura indisponível, dado corrompido), não para o fluxo normal de regras de negócio. A escolha final entre usar `Result` de forma consistente em todo o domínio ou exceções de domínio tipadas ainda vai ser validada pelo grupo na implementação, mas a diretriz de não usar exceção para controle de fluxo de negócio já está definida desde já.
 
 ## Organização de contratos e tipos compartilhados
 

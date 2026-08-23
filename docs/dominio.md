@@ -1,12 +1,12 @@
 # Domínio — QuimiPort
 
-Este documento cobre o entendimento do domínio e a modelagem com Domain-Driven Design (DDD): linguagem ubíqua, entidades, objetos de valor e agregados. Casos de uso e regras de negócio, também parte da modelagem DDD, estão detalhados em documentos próprios ([`casos-de-uso.md`](casos-de-uso.md) e [`regras-de-negocio.md`](regras-de-negocio.md)) e são referenciados aqui onde relevante.
+Este documento registra o entendimento do domínio e a modelagem feita com Domain-Driven Design (DDD): linguagem ubíqua, entidades, objetos de valor e agregados. Casos de uso e regras de negócio, que também fazem parte da modelagem DDD, ficam em documentos próprios ([`casos-de-uso.md`](casos-de-uso.md) e [`regras-de-negocio.md`](regras-de-negocio.md)) e são referenciados aqui sempre que ajudam a entender o domínio.
 
 ## 1. Entendimento do domínio
 
 ### Qual problema o sistema pretende resolver?
 
-No Porto de Santos, o registro de cargas químicas é hoje feito de forma manual ou descentralizada. Isso dificulta a consulta de informações, o acompanhamento do status de cada carga e a validação de regras de segurança antes da liberação para movimentação. O QuimiPort centraliza esse controle: cadastro de produtos químicos, registro de cargas, classificação de risco, documentação obrigatória, responsabilidade técnica e as validações de segurança que condicionam a liberação de uma carga.
+No Porto de Santos, o registro de cargas químicas ainda é feito, em boa parte, de forma manual ou descentralizada. Isso dificulta consultar informações, acompanhar o status de cada carga e validar as regras de segurança antes de liberar a movimentação. A proposta do QuimiPort é centralizar esse controle: cadastro de produtos químicos, registro de cargas, classificação de risco, documentação obrigatória, responsabilidade técnica e as validações de segurança que condicionam a liberação de uma carga.
 
 ### Quem são os usuários envolvidos?
 
@@ -79,7 +79,7 @@ No Porto de Santos, o registro de cargas químicas é hoje feito de forma manual
 | **Documentação Obrigatória** | Conjunto de documentos exigidos para que uma carga possa ser liberada (ex.: ficha de segurança, laudo técnico, licença de transporte). |
 | **Responsável Técnico** | Profissional habilitado que assume formalmente a responsabilidade técnica por uma carga. |
 | **Inspeção** | Verificação técnica realizada sobre uma carga para atestar sua conformidade antes da liberação. |
-| **Status da Carga** | Estado atual da carga no fluxo operacional (ex.: registrada, em validação documental, em inspeção, liberada, bloqueada, cancelada). Ver [`diagramas/fluxo-status.md`](diagramas/fluxo-status.md). |
+| **Status da Carga** | Estado atual da carga no fluxo operacional: `Registrada`, `EmValidacaoDocumental`, `EmInspecao`, `Liberada`, `Bloqueada`, `Cancelada` — nomes técnicos (usados no enum `StatusCarga` e nos diagramas), descritos em prosa como "registrada", "em validação documental" etc. Ver [`diagramas/fluxo-status.md`](diagramas/fluxo-status.md) e a nota sobre nomes de status em [`casos-de-uso.md`](casos-de-uso.md). |
 | **Liberação** | Ato de autorizar uma carga para movimentação portuária, condicionado ao cumprimento de todas as regras de segurança. |
 | **Bloqueio** | Ato de impedir a movimentação de uma carga por descumprimento de alguma regra de negócio ou de segurança. |
 | **Área de Armazenamento** | Local físico do porto onde uma carga pode ser mantida até sua liberação. |
@@ -157,7 +157,7 @@ Objetos de valor não possuem identidade própria: são definidos pelos seus atr
 
 ### Carga Química — agregado principal
 
-A **Carga Química** foi escolhida como raiz de agregado porque é o elemento do domínio que precisa garantir consistência transacional entre várias informações relacionadas ao mesmo tempo: o produto associado, a quantidade, a documentação apresentada, o responsável técnico, o histórico de inspeções e o status atual. Nenhuma dessas informações faz sentido de forma isolada — todas as decisões de negócio (liberar, bloquear, cancelar) dependem de avaliá-las em conjunto.
+Escolhemos a **Carga Química** como raiz de agregado porque é o elemento do domínio que precisa garantir consistência entre várias informações que mudam ao mesmo tempo: o produto associado, a quantidade, a documentação apresentada, o responsável técnico, o histórico de inspeções e o status atual. Nenhuma dessas informações faz sentido isolada das demais — toda decisão de negócio (liberar, bloquear, cancelar) depende de avaliá-las em conjunto.
 
 O agregado protege, entre outras, as regras de que:
 

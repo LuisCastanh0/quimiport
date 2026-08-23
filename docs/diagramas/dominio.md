@@ -124,7 +124,7 @@ classDiagram
 
 ## Leitura do diagrama
 
-**Carga Química** é a raiz do agregado principal (justificativa completa em [`../dominio.md`](../dominio.md), seção 5). Ela concentra, dentro do seu limite transacional, as entidades **Documento da Carga** e **Inspeção** — ambas sem sentido fora do contexto de uma carga específica, por isso representadas por composição (`*--`).
+**Carga Química** é a raiz do agregado principal (a justificativa completa está em [`../dominio.md`](../dominio.md), seção 5). Ela concentra, dentro do seu limite transacional, as entidades **Documento da Carga** e **Inspeção** — ambas sem sentido fora do contexto de uma carga específica, por isso representadas aqui por composição (`*--`).
 
 **Produto Químico**, **Responsável Técnico** e **Área de Armazenamento** são agregados independentes, cada um com seu próprio ciclo de vida e suas próprias regras (ex.: inativação de produto). A Carga Química não os contém — apenas os referencia por identificador (`produtoQuimicoId`, `responsavelTecnicoId`, `areaArmazenamentoId`), representado por associação (`-->`). Isso é o que impede, por exemplo, que a inativação de um Produto Químico afete diretamente cargas já registradas, e é a base da regra RN02/RN10 em [`../regras-de-negocio.md`](../regras-de-negocio.md) (a carga apenas consulta o status do produto, não o carrega consigo).
 

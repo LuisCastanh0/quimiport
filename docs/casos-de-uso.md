@@ -1,6 +1,8 @@
 # Casos de Uso — QuimiPort
 
-Este documento detalha os casos de uso planejados para o QuimiPort, conforme a lista de sugestões do PDF do Tech Challenge. Os atores utilizados são os perfis definidos em [`dominio.md`](dominio.md); as regras de negócio citadas são consolidadas em [`regras-de-negocio.md`](regras-de-negocio.md); os status da carga seguem o conjunto definido no glossário de [`dominio.md`](dominio.md) e detalhado em [`diagramas/fluxo-status.md`](diagramas/fluxo-status.md): `Registrada`, `Em Validação Documental`, `Em Inspeção`, `Liberada`, `Bloqueada`, `Cancelada`.
+Este documento detalha os casos de uso planejados para o QuimiPort, seguindo a lista de sugestões do PDF do Tech Challenge. Os atores usados aqui são os perfis já definidos em [`dominio.md`](dominio.md); as regras de negócio citadas estão consolidadas em [`regras-de-negocio.md`](regras-de-negocio.md); e os status da carga seguem o conjunto definido no glossário de [`dominio.md`](dominio.md) e detalhado em [`diagramas/fluxo-status.md`](diagramas/fluxo-status.md): `Registrada`, `EmValidacaoDocumental`, `EmInspecao`, `Liberada`, `Bloqueada`, `Cancelada`.
+
+> **Nota sobre os nomes de status:** os valores acima são os nomes técnicos, usados também no enum `StatusCarga` ([`typescript-javascript.md`](typescript-javascript.md)) e nos dois diagramas obrigatórios ([`diagramas/dominio.md`](diagramas/dominio.md), [`diagramas/fluxo-status.md`](diagramas/fluxo-status.md)) — sem espaço nem acento, por serem identificadores válidos em código. No texto corrido deste e de outros documentos, os mesmos estados podem aparecer em forma legível ("em validação documental", "em inspeção"); é sempre o mesmo conceito, só a grafia muda entre prosa e identificador técnico.
 
 > **Nota sobre os atores:** o PDF define os perfis de usuário como exemplos, sem vincular cada um a um caso de uso específico. O mapeamento ator → caso de uso abaixo é uma definição do grupo, feita para manter coerência com as responsabilidades descritas em `dominio.md`.
 
@@ -18,44 +20,46 @@ flowchart LR
     end
 
     subgraph SIS["QuimiPort"]
-        UC1([Cadastrar Produto Químico])
-        UC2([Inativar Produto Químico])
-        UC3([Registrar Carga Química])
-        UC4([Validar Documentação da Carga])
-        UC5([Solicitar Inspeção])
-        UC6([Liberar Carga Química])
-        UC7([Bloquear Carga Química])
-        UC8([Atualizar Status da Carga])
-        UC9([Cancelar Carga Química])
+        UC01([Cadastrar Produto Químico])
+        UC02([Inativar Produto Químico])
+        UC03([Registrar Carga Química])
+        UC04([Validar Documentação da Carga])
+        UC05([Solicitar Inspeção])
+        UC06([Liberar Carga Química])
+        UC07([Bloquear Carga Química])
+        UC08([Atualizar Status da Carga])
+        UC09([Cancelar Carga Química])
         UC10([Consultar Cargas por Status])
         UC11([Consultar Histórico da Carga])
         UC12([Assumir Responsabilidade Técnica])
     end
 
-    AT1 --> UC1
-    AT1 --> UC2
-    AT2 --> UC3
+    AT1 --> UC01
+    AT1 --> UC02
+    AT2 --> UC03
     AT2 --> UC10
     AT2 --> UC11
-    AT3 --> UC4
-    AT4 --> UC5
-    AT5 --> UC6
-    AT5 --> UC7
-    AT5 --> UC9
+    AT3 --> UC04
+    AT4 --> UC05
+    AT5 --> UC06
+    AT5 --> UC07
+    AT5 --> UC09
     AT5 --> UC10
     AT5 --> UC11
     AT6 --> UC12
 
-    UC4 -. dispara .-> UC8
-    UC5 -. dispara .-> UC8
-    UC6 -. dispara .-> UC8
-    UC7 -. dispara .-> UC8
-    UC9 -. dispara .-> UC8
-    UC12 -. dispara .-> UC8
-    UC12 -. pré-requisito de .-> UC6
+    UC04 -. dispara .-> UC08
+    UC04 -. documentação inválida\ndispara .-> UC07
+    UC05 -. dispara .-> UC08
+    UC05 -. inspeção reprovada\ndispara .-> UC07
+    UC06 -. dispara .-> UC08
+    UC07 -. dispara .-> UC08
+    UC09 -. dispara .-> UC08
+    UC12 -. dispara .-> UC08
+    UC12 -. pré-requisito de .-> UC06
 ```
 
-O caso de uso **Atualizar Status da Carga** não tem um ator humano direto: ele representa a transição de estado disparada como consequência de outros casos de uso (validação documental, inspeção, liberação, bloqueio, cancelamento), sempre respeitando as transições permitidas do fluxo de status.
+Vale destacar que o caso de uso **Atualizar Status da Carga** não tem um ator humano direto: ele representa a transição de estado disparada como consequência de outros casos de uso (validação documental, inspeção, liberação, bloqueio, cancelamento), sempre respeitando as transições permitidas do fluxo de status.
 
 ## Fluxo principal (diagrama de sequência)
 
@@ -74,7 +78,7 @@ sequenceDiagram
     SYS-->>OP: Carga registrada (status: Registrada)
 
     AD->>SYS: Validar documentação da carga
-    SYS-->>AD: Documentação válida (status: Em Validação Documental → Em Inspeção)
+    SYS-->>AD: Documentação válida (status: EmValidacaoDocumental → EmInspecao)
 
     AQ->>SYS: Solicitar / registrar inspeção
     SYS-->>AQ: Inspeção aprovada
@@ -99,7 +103,7 @@ sequenceDiagram
 | UC04 | Validar documentação da carga | Analista de Documentação |
 | UC05 | Solicitar inspeção | Analista de Qualidade |
 | UC06 | Liberar carga química | Gestor Operacional |
-| UC07 | Bloquear carga química | Gestor Operacional |
+| UC07 | Bloquear carga química | Gestor Operacional (manual) / Sistema (automático, ver seção do UC07) |
 | UC08 | Atualizar status da carga | Sistema (consequência de outros UCs) |
 | UC09 | Cancelar carga química | Gestor Operacional |
 | UC10 | Consultar cargas por status | Operador Portuário / Gestor Operacional |
@@ -148,7 +152,7 @@ sequenceDiagram
 | **Objetivo** | Anexar e validar os documentos obrigatórios de uma carga química. |
 | **Ator** | Analista de Documentação |
 | **Entrada esperada** | Identificador da carga, tipo de documento, número e período de validade. |
-| **Saída esperada** | Documento(s) registrado(s) com status `Válido` ou `Inválido`; quando todos os documentos obrigatórios estiverem válidos, a carga avança de status (`Registrada` → `Em Validação Documental` → apta a seguir para inspeção). |
+| **Saída esperada** | Documento(s) registrado(s) com status `Válido` ou `Inválido`; quando todos os documentos obrigatórios estiverem válidos, a carga avança de status (`Registrada` → `EmValidacaoDocumental` → apta a seguir para inspeção). |
 | **Principais regras de negócio** | Uma carga química não pode ser liberada sem documentação obrigatória válida. |
 | **Possíveis erros/exceções** | Documento vencido; documento de tipo não reconhecido; carga inexistente; carga já cancelada ou bloqueada. |
 
@@ -159,7 +163,7 @@ sequenceDiagram
 | **Objetivo** | Registrar a solicitação e o resultado de uma inspeção técnica sobre a carga. |
 | **Ator** | Analista de Qualidade |
 | **Entrada esperada** | Identificador da carga, data da inspeção, inspetor responsável, resultado e parecer. |
-| **Saída esperada** | Inspeção registrada; carga com status `Em Inspeção` durante a avaliação; ao final, resultado `Aprovada` (segue para liberação) ou `Reprovada` (segue para bloqueio). |
+| **Saída esperada** | Inspeção registrada; carga com status `EmInspecao` durante a avaliação; ao final, resultado `Aprovada` (segue para liberação) ou `Reprovada` (segue para bloqueio). |
 | **Principais regras de negócio** | Uma carga em inspeção não pode ser finalizada sem antes ser liberada. |
 | **Possíveis erros/exceções** | Carga sem documentação válida ainda (inspeção solicitada fora de ordem); carga já bloqueada ou cancelada; inspeção duplicada em aberto para a mesma carga. |
 
@@ -239,3 +243,5 @@ sequenceDiagram
 | **Saída esperada** | Carga com o aceite do responsável técnico registrado (`aceiteResponsavelTecnico` preenchido com data/hora). |
 | **Principais regras de negócio** | Toda carga deve possuir um responsável técnico informado; a carga não pode ser liberada sem que o responsável técnico tenha confirmado formalmente a responsabilidade. |
 | **Possíveis erros/exceções** | Responsável técnico não vinculado à carga; carga já cancelada ou bloqueada; aceite já registrado anteriormente (duplicidade). |
+
+> **UC12 não está na lista de sugestões do PDF** (que lista 11 casos de uso) — foi adicionado pelo grupo para formalizar, como caso de uso próprio, o momento em que o Responsável Técnico "assume tecnicamente" a carga (já mencionado em `dominio.md`). É a origem da regra RN13 em [`regras-de-negocio.md`](regras-de-negocio.md), que já sinaliza essa mesma origem.
