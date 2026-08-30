@@ -1,7 +1,5 @@
 # Diagrama de Contexto da Aplicação
 
-Diagrama sugerido pelo PDF do Tech Challenge (seção 7), complementar aos dois obrigatórios ([`dominio.md`](dominio.md) e [`fluxo-status.md`](fluxo-status.md)). Mostra o QuimiPort como uma caixa única, os atores que interagem com ele — os perfis definidos em [`../dominio.md`](../dominio.md) — e os sistemas externos que ficam fora do escopo desta fase.
-
 ## Diagrama
 
 ```mermaid

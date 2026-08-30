@@ -1,14 +1,14 @@
 # Plano de Qualidade de Software — QuimiPort
 
-Este documento cobre a seção 8 do PDF do Tech Challenge: o plano de qualidade do QuimiPort e como o projeto poderá ser testado nas próximas fases. Ele parte direto das regras de negócio ([`regras-de-negocio.md`](regras-de-negocio.md)) e dos casos de uso ([`casos-de-uso.md`](casos-de-uso.md)) já documentados.
+Este documento cobre o plano de qualidade do QuimiPort e como o projeto poderá ser testado nas próximas fases. Ele parte direto das regras de negócio ([`regras-de-negocio.md`](regras-de-negocio.md)) e dos casos de uso ([`casos-de-uso.md`](casos-de-uso.md)) já documentados.
 
 ## Regras de negócio que precisam ser testadas
 
-Todas as regras RN01–RN13 de [`regras-de-negocio.md`](regras-de-negocio.md) são invariantes de agregado e, por isso, são candidatas naturais a teste unitário — nenhuma delas deveria depender de infraestrutura para ser validada. A tabela de cenários de teste, logo mais abaixo, mapeia cada uma delas a pelo menos um cenário.
+Todas as regras RN01–RN13 de [`regras-de-negocio.md`](regras-de-negocio.md) são invariantes de agregado e, por isso, são candidatas naturais a teste unitário. Nenhuma delas deveria depender de infraestrutura para ser validada. A tabela de cenários de teste, logo abaixo, mapeia cada uma delas a pelo menos um cenário.
 
 ## Casos de uso mais críticos
 
-Aqui, criticidade significa o quanto uma falha nesse caso de uso compromete segurança ou conformidade regulatória — não apenas a experiência de uso.
+Aqui, criticidade significa o quanto uma falha nesse caso de uso compromete segurança ou conformidade regulatória.
 
 | Caso de uso | Por que é crítico | Prioridade de teste |
 |---|---|---|
@@ -35,7 +35,6 @@ flowchart BT
 
 ## Testes unitários
 
-Aplicados desde já ao domínio e à aplicação, sem qualquer infraestrutura real:
 
 - **Domínio**: cada regra de negócio (RN01–RN13) testada diretamente na entidade/agregado/objeto de valor que a impõe — ex.: `Quantidade.criar(-5, "kg")` deve rejeitar (RN11); `CargaQuimica.liberar()` sem documentação válida deve rejeitar (RN04).
 - **Aplicação**: cada caso de uso testado com um repositório em memória, verificando que ele orquestra corretamente o domínio (busca, chama o método certo, salva o resultado) — não reimplementa nem reinterpreta a regra, que já foi validada isoladamente no teste de domínio.
@@ -44,25 +43,23 @@ Aplicados desde já ao domínio e à aplicação, sem qualquer infraestrutura re
 
 ## Testes de integração (próximas fases)
 
-Só fazem sentido quando existir infraestrutura real para integrar:
 
-- Repositórios reais (ex.: contra um banco de dados de teste, descartável por execução) validados contra o mesmo contrato de interface já usado pelos repositórios em memória — garantindo que a implementação real respeita o que o domínio espera.
-- Quando a API REST existir (ver [`decisoes-arquiteturais.md`](decisoes-arquiteturais.md), ADR-04), testes de integração de contrato HTTP (status code, formato de payload) — sem duplicar a lógica de negócio, que já está coberta nos testes unitários.
+
+- Repositórios reais (ex.: contra um banco de dados de teste, descartável por execução) validados contra o mesmo contrato de interface já usado pelos repositórios em memória, garantindo que a implementação real respeita o que o domínio espera.
+- Quando a API REST existir (ver [`decisoes-arquiteturais.md`](decisoes-arquiteturais.md), ADR-04), testes de integração de contrato HTTP (status code, formato de payload), sem duplicar a lógica de negócio, que já está coberta nos testes unitários.
 
 ## Validação dos fluxos principais
 
-- O fluxo feliz completo — Registrar → Validar documentação → Solicitar inspeção → Assumir responsabilidade técnica → Liberar — é validado por um teste que exercita vários casos de uso em sequência sobre os mesmos repositórios em memória, espelhando o diagrama de sequência de [`casos-de-uso.md`](casos-de-uso.md).
-- Cada transição do [diagrama de fluxo de status](diagramas/fluxo-status.md) deve ter pelo menos um teste correspondente — não só o caminho feliz, mas também bloqueio e cancelamento a partir de cada estado em que são permitidos, e a rejeição explícita de transições não permitidas (ex.: `Cancelada → Liberada`).
+- O fluxo feliz completo (Registrar → Validar documentação → Solicitar inspeção → Assumir responsabilidade técnica → Liberar) é validado por um teste que exercita vários casos de uso em sequência sobre os mesmos repositórios em memória, espelhando o diagrama de sequência de [`casos-de-uso.md`](casos-de-uso.md).
+- Cada transição do [diagrama de fluxo de status](diagramas/fluxo-status.md) deve ter pelo menos um teste correspondento, incluindo não só o caminho feliz, mas também bloqueio e cancelamento a partir de cada estado em que são permitidos, e a rejeição explícita de transições não permitidas (ex.: `Cancelada → Liberada`).
 
 ## Mocks e dados simulados
 
-- Os repositórios em memória (`InMemoryCargaQuimicaRepository`, etc., já previstos em [`arquitetura.md`](arquitetura.md)) funcionam como *fakes* nos testes de caso de uso — implementações reais e simples da interface, não mocks de biblioteca. Isso valida o resultado real da operação em vez de apenas verificar "foi chamado com X", reduzindo testes frágeis.
-- Dados de teste são criados por *builders* (padrão Object Mother), um por agregado (ex.: `CargaQuimicaBuilder`, `ProdutoQuimicoBuilder`), que produzem uma entidade válida por padrão e permitem customizar só o campo relevante ao cenário (ex.: `.comProdutoInativo()`, `.semDocumentacao()`) — mantendo cada teste legível e focado na regra que está validando.
-- Nenhum teste desta fase depende de banco de dados real ou rede — determinístico e rápido, o que também viabiliza rodá-los a cada commit.
+- Os repositórios em memória (`InMemoryCargaQuimicaRepository`, etc., já previstos em [`arquitetura.md`](arquitetura.md)) funcionam como *fakes* nos testes de caso de uso. Isso valida o resultado real da operação em vez de apenas verificar "foi chamado com X", reduzindo testes frágeis.
+- Dados de teste são criados por *builders* (padrão Object Mother), um por agregado (ex.: `CargaQuimicaBuilder`, `ProdutoQuimicoBuilder`), que produzem uma entidade válida por padrão e permitem customizar só o campo relevante ao cenário (ex.: `.comProdutoInativo()`, `.semDocumentacao()`), mantendo cada teste legível e focado na regra que está validando.
+- Nenhum teste desta fase depende de banco de dados real ou rede.
 
 ## Cenários de teste planejados
-
-Inclui os exemplos do PDF e os cenários adicionais decorrentes das regras/casos de uso definidos pelo grupo (RN13, UC12, transições de status).
 
 | # | Cenário | Regra(s) | Caso(s) de uso |
 |---|---|---|---|

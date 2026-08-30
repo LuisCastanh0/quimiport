@@ -1,15 +1,16 @@
 # QuimiPort
 
+Sistema para gestão inicial de cargas químicas em ambiente portuário, inspirado nas operações do Porto de Santos.
+
+> **Fase 1 — Fundamentos, Domínio e Arquitetura.**
+> Esta entrega **não** contém aplicação funcional. O foco é estruturar a base (domínio, regras de negócio e arquitetura) para evoluir nas próximas fases sem precisar retrabalhar o que já foi definido.
+
 ## Equipe
 
 | Nome | RM |
 |---|---|
 | Luis Gustavo Aguirre Castanho | rm375479 |
 
-Sistema para gestão inicial de cargas químicas em ambiente portuário, inspirado nas operações do Porto de Santos.
-
-> **Fase 1 — Fundamentos, Domínio e Arquitetura.**
-> Esta entrega **não** contém aplicação funcional. O foco é estruturar a base (domínio, regras de negócio e arquitetura) para evoluir nas próximas fases sem precisar retrabalhar o que já foi definido.
 
 ## Contexto do problema
 
@@ -63,7 +64,3 @@ quimiport/
         └── contexto.md
         
 ```
-
-## Vídeo demonstrativo
-
-_Link a ser adicionado após a gravação._

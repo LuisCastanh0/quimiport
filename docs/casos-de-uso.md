@@ -1,10 +1,11 @@
 # Casos de Uso — QuimiPort
 
-Este documento detalha os casos de uso planejados para o QuimiPort, seguindo a lista de sugestões do PDF do Tech Challenge. Os atores usados aqui são os perfis já definidos em [`dominio.md`](dominio.md); as regras de negócio citadas estão consolidadas em [`regras-de-negocio.md`](regras-de-negocio.md); e os status da carga seguem o conjunto definido no glossário de [`dominio.md`](dominio.md) e detalhado em [`diagramas/fluxo-status.md`](diagramas/fluxo-status.md): `Registrada`, `EmValidacaoDocumental`, `EmInspecao`, `Liberada`, `Bloqueada`, `Cancelada`.
+Este documento detalha os casos de uso planejados para o QuimiPort. 
+- Os atores usados aqui são os perfis já definidos em [`dominio.md`](dominio.md); 
+- As regras de negócio citadas estão consolidadas em [`regras-de-negocio.md`](regras-de-negocio.md);
+- Os status da carga seguem o conjunto definido no glossário de [`dominio.md`](dominio.md) e detalhado em [`diagramas/fluxo-status.md`](diagramas/fluxo-status.md): `Registrada`, `EmValidacaoDocumental`, `EmInspecao`, `Liberada`, `Bloqueada`, `Cancelada`.
 
-> **Nota sobre os nomes de status:** os valores acima são os nomes técnicos, usados também no enum `StatusCarga` ([`typescript-javascript.md`](typescript-javascript.md)) e nos dois diagramas obrigatórios ([`diagramas/dominio.md`](diagramas/dominio.md), [`diagramas/fluxo-status.md`](diagramas/fluxo-status.md)) — sem espaço nem acento, por serem identificadores válidos em código. No texto corrido deste e de outros documentos, os mesmos estados podem aparecer em forma legível ("em validação documental", "em inspeção"); é sempre o mesmo conceito, só a grafia muda entre prosa e identificador técnico.
-
-> **Nota sobre os atores:** o PDF define os perfis de usuário como exemplos, sem vincular cada um a um caso de uso específico. O mapeamento ator → caso de uso abaixo é uma definição do grupo, feita para manter coerência com as responsabilidades descritas em `dominio.md`.
+> **Nota sobre os nomes de status:** os valores acima são os nomes técnicos, usados também no enum `StatusCarga` ([`typescript-javascript.md`](typescript-javascript.md)) e nos diagramas ([`diagramas/dominio.md`](diagramas/dominio.md), [`diagramas/fluxo-status.md`](diagramas/fluxo-status.md)), sem espaço nem acento, por serem identificadores válidos em código. No texto corrido deste e de outros documentos, os mesmos estados podem aparecer em forma legível ("em validação documental", "em inspeção"), mas se referem ao mesmo identificador.
 
 ## Visão geral (diagrama de casos de uso)
 
@@ -120,7 +121,7 @@ sequenceDiagram
 | **Ator** | Administrador do Sistema |
 | **Entrada esperada** | Nome do produto, classificação de risco (classe ONU/categoria de perigo), descrição opcional. |
 | **Saída esperada** | Produto químico criado com status `Ativo`. |
-| **Principais regras de negócio** | Um produto químico não pode ser cadastrado sem nome; um produto químico não pode ser cadastrado sem classe de risco. |
+| **Principais regras de negócio** | `RN08` — não pode ser cadastrado sem nome; `RN09` — não pode ser cadastrado sem classe de risco. |
 | **Possíveis erros/exceções** | Nome ausente ou vazio; classificação de risco ausente; produto duplicado (mesmo nome/identificação já cadastrado). |
 
 ### UC02 — Inativar produto químico
@@ -131,7 +132,7 @@ sequenceDiagram
 | **Ator** | Administrador do Sistema |
 | **Entrada esperada** | Identificador do produto químico a inativar. |
 | **Saída esperada** | Produto químico com status alterado para `Inativo`. |
-| **Principais regras de negócio** | Um produto químico inativo não pode ser usado em novas cargas. |
+| **Principais regras de negócio** | `RN10` — um produto químico inativo não pode ser usado em novas cargas. |
 | **Possíveis erros/exceções** | Produto inexistente; produto já inativo. |
 
 ### UC03 — Registrar carga química
@@ -142,7 +143,7 @@ sequenceDiagram
 | **Ator** | Operador Portuário |
 | **Entrada esperada** | Produto químico associado, quantidade, classificação de risco, responsável técnico. |
 | **Saída esperada** | Carga química criada com status `Registrada`. |
-| **Principais regras de negócio** | Uma carga química não pode ser registrada sem produto químico associado; não pode ser registrada com produto químico inativo; não pode ser registrada sem classificação de risco; a quantidade da carga deve ser maior que zero; toda carga deve possuir um responsável técnico informado. |
+| **Principais regras de negócio** | `RN01` — não pode ser registrada sem produto químico associado; `RN02`/`RN10` — não pode ser registrada com produto químico inativo; `RN03` — não pode ser registrada sem classificação de risco; `RN11` — a quantidade deve ser maior que zero; `RN12` — toda carga deve possuir um responsável técnico informado. |
 | **Possíveis erros/exceções** | Produto inexistente ou inativo; classificação de risco ausente; quantidade menor ou igual a zero; responsável técnico não informado. |
 
 ### UC04 — Validar documentação da carga
@@ -153,7 +154,7 @@ sequenceDiagram
 | **Ator** | Analista de Documentação |
 | **Entrada esperada** | Identificador da carga, tipo de documento, número e período de validade. |
 | **Saída esperada** | Documento(s) registrado(s) com status `Válido` ou `Inválido`; quando todos os documentos obrigatórios estiverem válidos, a carga avança de status (`Registrada` → `EmValidacaoDocumental` → apta a seguir para inspeção). |
-| **Principais regras de negócio** | Uma carga química não pode ser liberada sem documentação obrigatória válida. |
+| **Principais regras de negócio** | `RN04` — uma carga química não pode ser liberada sem documentação obrigatória válida. |
 | **Possíveis erros/exceções** | Documento vencido; documento de tipo não reconhecido; carga inexistente; carga já cancelada ou bloqueada. |
 
 ### UC05 — Solicitar inspeção
@@ -164,7 +165,7 @@ sequenceDiagram
 | **Ator** | Analista de Qualidade |
 | **Entrada esperada** | Identificador da carga, data da inspeção, inspetor responsável, resultado e parecer. |
 | **Saída esperada** | Inspeção registrada; carga com status `EmInspecao` durante a avaliação; ao final, resultado `Aprovada` (segue para liberação) ou `Reprovada` (segue para bloqueio). |
-| **Principais regras de negócio** | Uma carga em inspeção não pode ser finalizada sem antes ser liberada. |
+| **Principais regras de negócio** | `RN07` — uma carga em inspeção não pode ser finalizada sem antes ser liberada. |
 | **Possíveis erros/exceções** | Carga sem documentação válida ainda (inspeção solicitada fora de ordem); carga já bloqueada ou cancelada; inspeção duplicada em aberto para a mesma carga. |
 
 ### UC06 — Liberar carga química
@@ -175,7 +176,7 @@ sequenceDiagram
 | **Ator** | Gestor Operacional |
 | **Entrada esperada** | Identificador da carga. |
 | **Saída esperada** | Carga com status `Liberada`, apta à movimentação. |
-| **Principais regras de negócio** | Uma carga química não pode ser liberada sem documentação obrigatória; uma carga cancelada não pode ser liberada; uma carga em inspeção não pode ser finalizada sem antes ser liberada; toda carga deve possuir um responsável técnico informado; a carga não pode ser liberada sem que o responsável técnico tenha assumido formalmente a responsabilidade (ver UC12). |
+| **Principais regras de negócio** | `RN04` — não pode ser liberada sem documentação obrigatória válida; `RN06` — carga cancelada não pode ser liberada; `RN07` — carga em inspeção não pode ser finalizada sem antes ser liberada; `RN12` — toda carga deve possuir um responsável técnico informado; `RN13` — não pode ser liberada sem que o responsável técnico tenha assumido formalmente a responsabilidade (ver UC12). |
 | **Possíveis erros/exceções** | Documentação pendente ou inválida; inspeção reprovada ou não concluída; responsável técnico ausente ou sem aceite formal registrado; carga já cancelada ou bloqueada. |
 
 ### UC07 — Bloquear carga química
@@ -186,8 +187,8 @@ sequenceDiagram
 | **Ator** | Gestor Operacional (bloqueio manual) ou sistema (bloqueio automático decorrente de inspeção reprovada ou documentação inválida) |
 | **Entrada esperada** | Identificador da carga; motivo do bloqueio. |
 | **Saída esperada** | Carga com status `Bloqueada`. |
-| **Principais regras de negócio** | Uma carga bloqueada não pode entrar em movimentação. |
-| **Possíveis erros/exceções** | Carga já liberada anteriormente (bloqueio após liberação exige tratamento específico, previsto para fases futuras); carga já cancelada. |
+| **Principais regras de negócio** | `RN05` — uma carga bloqueada não pode entrar em movimentação. |
+| **Possíveis erros/exceções** | Carga já liberada; carga já cancelada. |
 
 ### UC08 — Atualizar status da carga
 
@@ -197,7 +198,7 @@ sequenceDiagram
 | **Ator** | Sistema (interno, disparado por outros casos de uso); Gestor Operacional em correções pontuais |
 | **Entrada esperada** | Identificador da carga; status de origem e status de destino. |
 | **Saída esperada** | Status atualizado e histórico de transição registrado. |
-| **Principais regras de negócio** | Toda transição deve seguir o fluxo definido em [`diagramas/fluxo-status.md`](diagramas/fluxo-status.md); uma carga bloqueada não pode entrar em movimentação; uma carga cancelada não pode ser liberada. |
+| **Principais regras de negócio** | Toda transição deve seguir o fluxo definido em [`diagramas/fluxo-status.md`](diagramas/fluxo-status.md); `RN05` — uma carga bloqueada não pode entrar em movimentação; `RN06` — uma carga cancelada não pode ser liberada; `RN07` — uma carga em inspeção não pode ser finalizada sem antes ser liberada. |
 | **Possíveis erros/exceções** | Transição não permitida pelo fluxo de status (ex.: de `Cancelada` para `Liberada`). |
 
 ### UC09 — Cancelar carga química
@@ -208,7 +209,7 @@ sequenceDiagram
 | **Ator** | Gestor Operacional |
 | **Entrada esperada** | Identificador da carga; motivo do cancelamento. |
 | **Saída esperada** | Carga com status `Cancelada`. |
-| **Principais regras de negócio** | Uma carga cancelada não pode ser liberada. |
+| **Principais regras de negócio** | `RN06` — uma carga cancelada não pode ser liberada. |
 | **Possíveis erros/exceções** | Carga já cancelada; carga já liberada e em movimentação (cancelamento pós-liberação exige tratamento específico, previsto para fases futuras). |
 
 ### UC10 — Consultar cargas por status
@@ -241,7 +242,5 @@ sequenceDiagram
 | **Ator** | Responsável Técnico |
 | **Entrada esperada** | Identificador da carga; identificador do responsável técnico já vinculado a ela. |
 | **Saída esperada** | Carga com o aceite do responsável técnico registrado (`aceiteResponsavelTecnico` preenchido com data/hora). |
-| **Principais regras de negócio** | Toda carga deve possuir um responsável técnico informado; a carga não pode ser liberada sem que o responsável técnico tenha confirmado formalmente a responsabilidade. |
+| **Principais regras de negócio** | Um responsável técnico já deve estar vinculado à carga (pré-condição garantida por `RN12`, verificada no registro em UC03); `RN13` — a carga não pode ser liberada sem que o responsável técnico tenha confirmado formalmente a responsabilidade. |
 | **Possíveis erros/exceções** | Responsável técnico não vinculado à carga; carga já cancelada ou bloqueada; aceite já registrado anteriormente (duplicidade). |
-
-> **UC12 não está na lista de sugestões do PDF** (que lista 11 casos de uso) — foi adicionado pelo grupo para formalizar, como caso de uso próprio, o momento em que o Responsável Técnico "assume tecnicamente" a carga (já mencionado em `dominio.md`). É a origem da regra RN13 em [`regras-de-negocio.md`](regras-de-negocio.md), que já sinaliza essa mesma origem.

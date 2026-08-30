@@ -1,6 +1,6 @@
 # Domínio — QuimiPort
 
-Este documento registra o entendimento do domínio e a modelagem feita com Domain-Driven Design (DDD): linguagem ubíqua, entidades, objetos de valor e agregados. Casos de uso e regras de negócio, que também fazem parte da modelagem DDD, ficam em documentos próprios ([`casos-de-uso.md`](casos-de-uso.md) e [`regras-de-negocio.md`](regras-de-negocio.md)) e são referenciados aqui sempre que ajudam a entender o domínio.
+Este documento registra o entendimento do domínio e a modelagem feita com Domain-Driven Design (DDD): linguagem ubíqua, entidades, objetos de valor e agregados. Casos de uso e regras de em documentos próprios ([`casos-de-uso.md`](casos-de-uso.md) e [`regras-de-negocio.md`](regras-de-negocio.md)) e são referenciados aqui quando necessário.
 
 ## 1. Entendimento do domínio
 
@@ -29,7 +29,7 @@ No Porto de Santos, o registro de cargas químicas ainda é feito, em boa parte,
 - Responsável técnico vinculado a cada carga;
 - Status da carga e seu histórico de transições;
 - Registros de inspeção;
-- Área de armazenamento da carga, quando aplicável.
+- Área de armazenamento da carga.
 
 ### Quais processos fazem parte da operação?
 
@@ -56,9 +56,8 @@ No Porto de Santos, o registro de cargas químicas ainda é feito, em boa parte,
 - Liberar uma carga sem toda a documentação obrigatória valida configura risco de segurança e de conformidade regulatória;
 - Produtos inativados não podem originar novas cargas, para evitar uso de classificações desatualizadas;
 - Cargas bloqueadas ou canceladas não podem ser movimentadas, sob risco operacional;
-- O sistema depende de que o responsável técnico esteja corretamente vinculado antes da liberação — ausência de responsabilidade formal é uma restrição regulatória do domínio portuário;
-- Nesta fase, não há integração com sistemas externos (ex.: órgãos reguladores, sistemas do porto), o que é uma restrição de escopo, não de negócio.
-
+- O sistema depende de que o responsável técnico esteja corretamente vinculado antes da liberação;
+  
 ### Quais partes do sistema poderão evoluir nas próximas fases?
 
 - Implementação de frontend, backend e persistência (esta fase entrega apenas domínio e arquitetura);
@@ -79,7 +78,7 @@ No Porto de Santos, o registro de cargas químicas ainda é feito, em boa parte,
 | **Documentação Obrigatória** | Conjunto de documentos exigidos para que uma carga possa ser liberada (ex.: ficha de segurança, laudo técnico, licença de transporte). |
 | **Responsável Técnico** | Profissional habilitado que assume formalmente a responsabilidade técnica por uma carga. |
 | **Inspeção** | Verificação técnica realizada sobre uma carga para atestar sua conformidade antes da liberação. |
-| **Status da Carga** | Estado atual da carga no fluxo operacional: `Registrada`, `EmValidacaoDocumental`, `EmInspecao`, `Liberada`, `Bloqueada`, `Cancelada` — nomes técnicos (usados no enum `StatusCarga` e nos diagramas), descritos em prosa como "registrada", "em validação documental" etc. Ver [`diagramas/fluxo-status.md`](diagramas/fluxo-status.md) e a nota sobre nomes de status em [`casos-de-uso.md`](casos-de-uso.md). |
+| **Status da Carga** | Estado atual da carga no fluxo operacional: `Registrada`, `EmValidacaoDocumental`, `EmInspecao`, `Liberada`, `Bloqueada`, `Cancelada`.  Ver [`diagramas/fluxo-status.md`](diagramas/fluxo-status.md) e a nota sobre nomes de status em [`casos-de-uso.md`](casos-de-uso.md). |
 | **Liberação** | Ato de autorizar uma carga para movimentação portuária, condicionado ao cumprimento de todas as regras de segurança. |
 | **Bloqueio** | Ato de impedir a movimentação de uma carga por descumprimento de alguma regra de negócio ou de segurança. |
 | **Área de Armazenamento** | Local físico do porto onde uma carga pode ser mantida até sua liberação. |
@@ -111,7 +110,7 @@ No Porto de Santos, o registro de cargas químicas ainda é feito, em boa parte,
 |---|---|
 | **Responsabilidade** | Representar o profissional habilitado que assume formalmente a responsabilidade técnica por uma ou mais cargas. |
 | **Atributos principais** | `id`, `nome`, `registroProfissional` (VO), `especialidade` |
-| **Regras relacionadas** | Toda carga deve possuir um responsável técnico informado; o responsável técnico deve confirmar formalmente a responsabilidade pela carga (assumir tecnicamente) antes de ela ser liberada — ação modelada como caso de uso próprio (ver UC12 em [`casos-de-uso.md`](casos-de-uso.md)). |
+| **Regras relacionadas** | Toda carga deve possuir um responsável técnico informado; o responsável técnico deve confirmar formalmente a responsabilidade pela carga (assumir tecnicamente) antes de ela ser liberada (ação modelada como caso de uso próprio, ver UC12 em [`casos-de-uso.md`](casos-de-uso.md)). |
 | **Relacionamentos** | Um Responsável Técnico pode estar vinculado a múltiplas Cargas Químicas (1:N). |
 
 ### Documento da Carga
@@ -143,8 +142,6 @@ No Porto de Santos, o registro de cargas químicas ainda é feito, em boa parte,
 
 ## 4. Objetos de valor
 
-Objetos de valor não possuem identidade própria: são definidos pelos seus atributos e são imutáveis.
-
 | Objeto de valor | Atributos | Usado em |
 |---|---|---|
 | **ClassificacaoRisco** | `classeRisco` (ex.: classe ONU), `categoriaPerigo` | Produto Químico, Carga Química |
@@ -157,7 +154,7 @@ Objetos de valor não possuem identidade própria: são definidos pelos seus atr
 
 ### Carga Química — agregado principal
 
-Escolhemos a **Carga Química** como raiz de agregado porque é o elemento do domínio que precisa garantir consistência entre várias informações que mudam ao mesmo tempo: o produto associado, a quantidade, a documentação apresentada, o responsável técnico, o histórico de inspeções e o status atual. Nenhuma dessas informações faz sentido isolada das demais — toda decisão de negócio (liberar, bloquear, cancelar) depende de avaliá-las em conjunto.
+**Carga Química** foi escolhida como raiz de agregado porque é o elemento do domínio que precisa garantir consistência entre várias informações que mudam ao mesmo tempo: o produto associado, a quantidade, a documentação apresentada, o responsável técnico, o histórico de inspeções e o status atual. Nenhuma dessas informações faz sentido isolada das demais. Toda decisão de negócio e o fluxo principal de negócio funciona em torno da carga.
 
 O agregado protege, entre outras, as regras de que:
 
@@ -168,7 +165,7 @@ O agregado protege, entre outras, as regras de que:
 
 **Documento da Carga** e **Inspeção** são entidades internas ao agregado — só existem no contexto de uma Carga Química e são acessadas através dela, nunca diretamente.
 
-**Produto Químico**, **Responsável Técnico** e **Área de Armazenamento** são tratados como agregados independentes, com seu próprio ciclo de vida, e são referenciados pela Carga Química por identidade (`id`), e não incluídos dentro do agregado — isso evita que o agregado de Carga Química cresça demais e mantém cada ciclo de vida (ex.: inativação de um produto) desacoplado das cargas que o referenciam.
+**Produto Químico**, **Responsável Técnico** e **Área de Armazenamento** são tratados como agregados independentes, com seu próprio ciclo de vida, e são referenciados pela Carga Química por identidade (`id`), e não incluídos dentro do agregado. Assim, evitamos que o agregado de Carga Química fique grande demais e mantemos cada ciclo de vida (ex.: inativação de um produto) desacoplado das cargas que o referenciam.
 
 ## 6. Casos de uso e regras de negócio
 

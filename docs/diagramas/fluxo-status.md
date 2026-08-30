@@ -1,6 +1,6 @@
 # Fluxo de Transição de Status da Carga Química
 
-Diagrama obrigatório do Tech Challenge, representando o ciclo de vida do status da Carga Química (objeto de valor `StatusCarga`, definido em [`../dominio.md`](../dominio.md) e no [diagrama de domínio](dominio.md)). As transições seguem os casos de uso de [`../casos-de-uso.md`](../casos-de-uso.md) e são condicionadas pelas regras de negócio de [`../regras-de-negocio.md`](../regras-de-negocio.md).
+Diagrama representando o ciclo de vida do status da Carga Química (objeto de valor `StatusCarga`, definido em [`../dominio.md`](../dominio.md) e no [diagrama de domínio](dominio.md)). As transições seguem os casos de uso de [`../casos-de-uso.md`](../casos-de-uso.md) e são condicionadas pelas regras de negócio de [`../regras-de-negocio.md`](../regras-de-negocio.md).
 
 ## Estados
 

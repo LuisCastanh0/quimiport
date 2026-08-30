@@ -1,6 +1,6 @@
 # Diagrama de Domínio — Agregados e Entidades
 
-Diagrama obrigatório do Tech Challenge, representando as entidades, objetos de valor e agregados definidos em [`../dominio.md`](../dominio.md), com as regras consolidadas em [`../regras-de-negocio.md`](../regras-de-negocio.md).
+Diagrama representando as entidades, objetos de valor e agregados definidos em [`../dominio.md`](../dominio.md), com as regras consolidadas em [`../regras-de-negocio.md`](../regras-de-negocio.md).
 
 ## Legenda
 

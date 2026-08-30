@@ -1,6 +1,6 @@
 # Regras de Negócio — QuimiPort
 
-Este documento consolida as regras de negócio do QuimiPort, seguindo o que pede o PDF do Tech Challenge: descrevê-las de forma clara e indicar onde cada uma deve ficar concentrada na arquitetura futura da aplicação. As regras abaixo vêm da lista de exemplos do PDF e das entidades/agregados já definidos em [`dominio.md`](dominio.md); a coluna de casos de uso referencia [`casos-de-uso.md`](casos-de-uso.md).
+Este documento consolida as regras de negócio do QuimiPort. As regras abaixo vêm da lista de exemplos do PDF e das entidades/agregados já definidos em [`dominio.md`](dominio.md); a coluna de casos de uso referencia [`casos-de-uso.md`](casos-de-uso.md).
 
 ## Princípio de concentração das regras
 
@@ -15,7 +15,7 @@ Seguindo DDD, tratamos as regras de negócio como **invariantes do domínio**, c
 | RN03 | Uma carga química não pode ser registrada sem classificação de risco. | Agregado `Carga Química` | UC03 | Domínio — `Carga Química` |
 | RN04 | Uma carga química não pode ser liberada sem documentação obrigatória válida. | Agregado `Carga Química`, sobre a coleção `Documento da Carga` | UC04, UC06 | Domínio — `Carga Química` |
 | RN05 | Uma carga bloqueada não pode entrar em movimentação. | Agregado `Carga Química` | UC07, UC08 | Domínio — `Carga Química` (invariante de transição de status) |
-| RN06 | Uma carga cancelada não pode ser liberada. | Agregado `Carga Química` | UC06, UC09 | Domínio — `Carga Química` |
+| RN06 | Uma carga cancelada não pode ser liberada. | Agregado `Carga Química` | UC06, UC08, UC09 | Domínio — `Carga Química` |
 | RN07 | Uma carga em inspeção não pode ser finalizada sem antes ser liberada. | Agregado `Carga Química`, sobre a coleção `Inspeção` | UC05, UC06, UC08 | Domínio — `Carga Química` |
 | RN08 | Um produto químico não pode ser cadastrado sem nome. | Entidade `Produto Químico` | UC01 | Domínio — `Produto Químico` |
 | RN09 | Um produto químico não pode ser cadastrado sem classe de risco. | Entidade `Produto Químico` | UC01 | Domínio — `Produto Químico` |
@@ -24,9 +24,7 @@ Seguindo DDD, tratamos as regras de negócio como **invariantes do domínio**, c
 | RN12 | Toda carga deve possuir um responsável técnico informado. | Agregado `Carga Química` | UC03, UC06 | Domínio — `Carga Química` |
 | RN13 | Uma carga química não pode ser liberada sem que o responsável técnico tenha confirmado formalmente a responsabilidade pela carga (aceite registrado). | Agregado `Carga Química`, campo `aceiteResponsavelTecnico` | UC06, UC12 | Domínio — `Carga Química` |
 
-> **RN13** não está na lista de exemplos do PDF — foi identificada pelo grupo ao formalizar o caso de uso UC12 (Assumir responsabilidade técnica), decorrente da descrição de `dominio.md` de que o Responsável Técnico "assume tecnicamente" a carga. Está sinalizada aqui para manter rastreabilidade da origem da regra.
-
-> **RN02 e RN10** descrevem a mesma restrição de negócio sob duas perspectivas: RN10 é o invariante do próprio `Produto Químico` (não pode ser usado quando inativo); RN02 é a consequência desse invariante checada no momento em que `Carga Química` é registrada. Mantidas como regras separadas por seguirem a redação original do PDF, mas a implementação deve evitar duplicidade de lógica — a checagem de "produto ativo" deve residir em um único lugar (`Produto Químico`) e ser apenas consultada por `Carga Química`.
+> **RN13** foi elaborado pelo grupo ao formalizar o caso de uso UC12 (Assumir responsabilidade técnica), decorrente da descrição de `dominio.md` de que o Responsável Técnico "assume tecnicamente" a carga.
 
 ## Regras aplicadas ao registro de carga (UC03)
 

@@ -1,6 +1,6 @@
 # TypeScript e JavaScript Avançado — QuimiPort
 
-Este documento cobre a seção 9 do PDF do Tech Challenge: como JavaScript Avançado e TypeScript serão usados na construção futura do QuimiPort. As decisões aqui se aplicam às entidades, agregados e objetos de valor definidos em [`dominio.md`](dominio.md) e à estrutura de camadas de [`arquitetura.md`](arquitetura.md). Os exemplos são conceituais — servem para ilustrar a modelagem planejada, não são código de produção.
+Este documento cobre como JavaScript e TypeScript serão usados na construção futura do QuimiPort. As decisões aqui se aplicam às entidades, agregados e objetos de valor definidos em [`dominio.md`](dominio.md) e à estrutura de camadas de [`arquitetura.md`](arquitetura.md). Os exemplos são conceituais, servem para ilustrar a modelagem planejada, não são código de produção.
 
 ## Tipagem forte
 
