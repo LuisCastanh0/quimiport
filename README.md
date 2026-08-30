@@ -12,6 +12,10 @@ Sistema para gestão inicial de cargas químicas em ambiente portuário, inspira
 | Luis Gustavo Aguirre Castanho | rm375479 |
 
 
+## Link do Vídeo de Apresentação
+
+https://youtu.be/BB3CQ745Bes
+
 ## Contexto do problema
 
 O Porto de Santos é um dos principais pontos de movimentação de cargas do Brasil, e entre os diversos tipos de carga que passam por lá, os produtos químicos são os que exigem mais cuidado: documentação adequada, classificação de risco e acompanhamento técnico.
