@@ -24,6 +24,7 @@ export default [
   {
     ignores: [
       "dist/**",
+      "generated/**",
       "coverage/**",
       "node_modules/**",
       "prisma/migrations/**",
