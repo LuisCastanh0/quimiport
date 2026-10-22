@@ -32,24 +32,29 @@ export class InMemoryCargaQuimicaRepository implements ICargaQuimicaRepository {
         throw CargaQuimicaError.conflitoDeVersao();
       }
     }
-    this.registros.set(carga.id, carga);
+    // Guarda uma cópia desacoplada do objeto retornado ao chamador — um
+    // banco real nunca devolveria a mesma referência mutável em memória.
+    this.registros.set(carga.id, clonar(carga));
     this.versaoCommitada.set(carga.id, carga.version);
     this.versaoNoCarregamento.set(carga, carga.version);
   }
 
   async buscarPorId(id: string): Promise<CargaQuimica | null> {
-    const carga = this.registros.get(id);
-    if (!carga) {
+    const armazenada = this.registros.get(id);
+    if (!armazenada) {
       return null;
     }
-    this.versaoNoCarregamento.set(carga, carga.version);
-    return carga;
+    const copia = clonar(armazenada);
+    this.versaoNoCarregamento.set(copia, copia.version);
+    return copia;
   }
 
   async buscarPorCodigo(codigo: string): Promise<CargaQuimica | null> {
-    for (const carga of this.registros.values()) {
-      if (carga.codigo === codigo) {
-        return carga;
+    for (const armazenada of this.registros.values()) {
+      if (armazenada.codigo === codigo) {
+        const copia = clonar(armazenada);
+        this.versaoNoCarregamento.set(copia, copia.version);
+        return copia;
       }
     }
     return null;
@@ -67,6 +72,29 @@ export class InMemoryCargaQuimicaRepository implements ICargaQuimicaRepository {
     const pagina = filtro.pagina ?? 1;
     const limite = filtro.limite ?? 20;
     const inicio = (pagina - 1) * limite;
-    return { dados: dados.slice(inicio, inicio + limite), total };
+    return { dados: dados.slice(inicio, inicio + limite).map(clonar), total };
   }
+}
+
+/** Clonagem de agregado via `reconstituir` — não reaplica regras de criação. */
+function clonar(carga: CargaQuimica): CargaQuimica {
+  return CargaQuimica.reconstituir({
+    id: carga.id,
+    codigo: carga.codigo,
+    produtoQuimicoId: carga.produtoQuimicoId,
+    quantidade: { valor: carga.quantidade.valor, unidadeMedida: carga.quantidade.unidadeMedida },
+    classeRisco: carga.classificacaoRisco.classeRisco,
+    origem: carga.origem,
+    destino: carga.destino,
+    responsavelTecnicoId: carga.responsavelTecnicoId,
+    dataEntrada: carga.dataEntrada,
+    status: carga.status,
+    aceiteResponsavelTecnico: carga.aceiteResponsavelTecnico,
+    documentos: [...carga.documentos],
+    inspecoes: [...carga.inspecoes],
+    historicoStatus: [...carga.historicoStatus],
+    version: carga.version,
+    createdAt: carga.createdAt,
+    updatedAt: carga.updatedAt,
+  });
 }
