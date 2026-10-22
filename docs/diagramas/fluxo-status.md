@@ -1,5 +1,7 @@
 # Fluxo de Transição de Status da Carga Química
 
+> **Histórico de alterações:** revisado na Fase 2 (ver ADR-13 em [`../decisoes-arquiteturais.md`](../decisoes-arquiteturais.md)) — o estado de conferência documental foi renomeado para `EmAnalise`; foram adicionados os estados `EmMovimentacao` e `Finalizada`; `Bloqueada` passou a ser alcançável apenas a partir de `EmInspecao`; `Liberada` deixou de ser terminal (agora segue para `EmMovimentacao`); os terminais passaram a ser exclusivamente `Finalizada` e `Cancelada`.
+
 Diagrama representando o ciclo de vida do status da Carga Química (objeto de valor `StatusCarga`, definido em [`../dominio.md`](../dominio.md) e no [diagrama de domínio](dominio.md)). As transições seguem os casos de uso de [`../casos-de-uso.md`](../casos-de-uso.md) e são condicionadas pelas regras de negócio de [`../regras-de-negocio.md`](../regras-de-negocio.md).
 
 ## Estados
@@ -7,11 +9,13 @@ Diagrama representando o ciclo de vida do status da Carga Química (objeto de va
 | Estado | Significado |
 |---|---|
 | `Registrada` | Carga criada (UC03), com produto ativo, classificação de risco, quantidade e responsável técnico informados. |
-| `EmValidacaoDocumental` | Documentação obrigatória em conferência (UC04). |
+| `EmAnalise` | Documentação obrigatória em conferência (UC04). |
 | `EmInspecao` | Documentação validada; carga aguardando ou em processo de inspeção técnica (UC05). |
 | `Liberada` | Carga aprovada em todas as validações, apta à movimentação portuária (UC06). |
-| `Bloqueada` | Carga impedida de movimentação por descumprimento de regra de negócio/segurança (UC07). |
-| `Cancelada` | Carga encerrada definitivamente, sem possibilidade de liberação (UC09). |
+| `Bloqueada` | Carga impedida de movimentação por descumprimento de regra de negócio/segurança (UC07), somente a partir de `EmInspecao`. |
+| `EmMovimentacao` | Carga liberada e em deslocamento físico dentro do porto. |
+| `Finalizada` | Movimentação concluída; estado terminal. |
+| `Cancelada` | Carga encerrada definitivamente, sem possibilidade de liberação (UC09); estado terminal. |
 
 ## Diagrama
 
@@ -19,31 +23,31 @@ Diagrama representando o ciclo de vida do status da Carga Química (objeto de va
 stateDiagram-v2
     [*] --> Registrada : UC03 Registrar carga química\n(RN01, RN02/RN10, RN03, RN11, RN12)
 
-    Registrada --> EmValidacaoDocumental : UC04 Iniciar validação\nde documentação
+    Registrada --> EmAnalise : UC04 Iniciar análise\nde documentação
 
-    EmValidacaoDocumental --> EmValidacaoDocumental : Documentação pendente\nou inválida
-    EmValidacaoDocumental --> EmInspecao : UC04/UC05 Documentação\nválida (RN04)
+    EmAnalise --> EmInspecao : UC04/UC05 Documentação\nválida (RN04, RN17)
 
     EmInspecao --> Liberada : UC06 Liberar carga química\nInspeção aprovada (RN07) +\nResponsável técnico com\naceite (RN12, RN13)
     EmInspecao --> Bloqueada : UC07 Bloquear carga química\n(inspeção reprovada)
 
-    Registrada --> Bloqueada : UC07 Bloquear carga química\n(descumprimento de regra)
-    EmValidacaoDocumental --> Bloqueada : UC07 Bloquear carga química\n(descumprimento de regra)
+    Liberada --> EmMovimentacao : Início da movimentação\nportuária
+    EmMovimentacao --> Finalizada : UC08 Finalizar movimentação
 
     Registrada --> Cancelada : UC09 Cancelar carga química
-    EmValidacaoDocumental --> Cancelada : UC09 Cancelar carga química
+    EmAnalise --> Cancelada : UC09 Cancelar carga química
     EmInspecao --> Cancelada : UC09 Cancelar carga química
+    Liberada --> Cancelada : UC09 Cancelar carga química
     Bloqueada --> Cancelada : UC09 Cancelar carga química
 
-    Liberada --> [*] : Apta à movimentação\nportuária (RN05, RN06)
+    Finalizada --> [*]
     Cancelada --> [*]
 
     note right of Bloqueada
         Reversão de bloqueio (retorno a
-        Registrada/EmValidacaoDocumental)
+        Registrada/EmAnalise/EmInspecao)
         não está no escopo desta fase.
-        Ver dominio.md, "partes que
-        poderão evoluir".
+        Bloqueada só é alcançável a
+        partir de EmInspecao (RN14).
     end note
 
     note right of Liberada
@@ -56,8 +60,24 @@ stateDiagram-v2
     end note
 ```
 
+## Tabela de transições permitidas (RN14)
+
+Exatamente 11 transições são permitidas; qualquer outro par do produto cartesiano 8×8 (incluindo auto-transições) é proibido (`TRANSICAO_INVALIDA`):
+
+| De | Para | Gate |
+|---|---|---|
+| Registrada | EmAnalise | — |
+| EmAnalise | EmInspecao | Documentação obrigatória completa, válida e não vencida (RN04, RN17) |
+| EmInspecao | Liberada | Documentação válida (RN04); inspeção mais recente `Aprovada` (RN07); RT vinculado e com aceite (RN12, RN13) |
+| Liberada | EmMovimentacao | — |
+| EmMovimentacao | Finalizada | — |
+| Registrada | Cancelada | `motivo` obrigatório |
+| EmAnalise | Cancelada | `motivo` obrigatório |
+| EmInspecao | Cancelada | `motivo` obrigatório |
+| Liberada | Cancelada | `motivo` obrigatório |
+| Bloqueada | Cancelada | `motivo` obrigatório |
+| EmInspecao | Bloqueada | `motivo` obrigatório |
+
 ## Leitura do diagrama
 
-O fluxo feliz é `Registrada → EmValidacaoDocumental → EmInspecao → Liberada`, condicionado pelas regras de gate já detalhadas em [`../regras-de-negocio.md`](../regras-de-negocio.md) (fluxograma de UC06). A partir de `Registrada` ou `EmValidacaoDocumental`, uma carga pode ser bloqueada (UC07) ou cancelada (UC09) a qualquer momento em que descumprir uma regra de negócio. A partir de `EmInspecao`, o resultado da inspeção decide entre `Liberada` (aprovada) e `Bloqueada` (reprovada) — nunca há um estado "finalizado" fora dessas duas opções, o que corresponde à regra RN07 ("uma carga em inspeção não pode ser finalizada sem antes ser liberada").
-
-`Liberada` e `Cancelada` são estados terminais nesta fase: o cancelamento de uma carga já liberada e a reversão de um bloqueio não são tratados aqui — ambos ficam registrados como evolução futura em [`../dominio.md`](../dominio.md) ("Quais partes do sistema poderão evoluir nas próximas fases").
+O fluxo feliz é `Registrada → EmAnalise → EmInspecao → Liberada → EmMovimentacao → Finalizada`, condicionado pelas regras de gate já detalhadas em [`../regras-de-negocio.md`](../regras-de-negocio.md) (fluxograma de UC06). A partir de `Registrada`, `EmAnalise`, `EmInspecao` ou `Liberada`, uma carga pode ser cancelada (UC09) a qualquer momento. Apenas a partir de `EmInspecao` uma carga pode ser bloqueada (UC07) — por inspeção reprovada ou decisão do Gestor Operacional. `Finalizada` e `Cancelada` são os únicos estados terminais (RN15): nenhuma transição de status, documento, inspeção ou aceite é permitida a partir deles.

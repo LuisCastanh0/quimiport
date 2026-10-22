@@ -1,9 +1,11 @@
 # Casos de Uso — QuimiPort
 
+> **Histórico de alterações:** revisado na Fase 2 (ADR-13) — estado de conferência documental renomeado para `EmAnalise`; adicionados `EmMovimentacao` e `Finalizada`; UC04 não mais dispara bloqueio automático por documentação inválida; UC07 só é alcançável a partir de `EmInspecao`; UC09 passa a aceitar cancelamento também a partir de `Liberada`.
+
 Este documento detalha os casos de uso planejados para o QuimiPort. 
 - Os atores usados aqui são os perfis já definidos em [`dominio.md`](dominio.md); 
 - As regras de negócio citadas estão consolidadas em [`regras-de-negocio.md`](regras-de-negocio.md);
-- Os status da carga seguem o conjunto definido no glossário de [`dominio.md`](dominio.md) e detalhado em [`diagramas/fluxo-status.md`](diagramas/fluxo-status.md): `Registrada`, `EmValidacaoDocumental`, `EmInspecao`, `Liberada`, `Bloqueada`, `Cancelada`.
+- Os status da carga seguem o conjunto definido no glossário de [`dominio.md`](dominio.md) e detalhado em [`diagramas/fluxo-status.md`](diagramas/fluxo-status.md): `Registrada`, `EmAnalise`, `EmInspecao`, `Liberada`, `Bloqueada`, `EmMovimentacao`, `Finalizada`, `Cancelada`.
 
 > **Nota sobre os nomes de status:** os valores acima são os nomes técnicos, usados também no enum `StatusCarga` ([`typescript-javascript.md`](typescript-javascript.md)) e nos diagramas ([`diagramas/dominio.md`](diagramas/dominio.md), [`diagramas/fluxo-status.md`](diagramas/fluxo-status.md)), sem espaço nem acento, por serem identificadores válidos em código. No texto corrido deste e de outros documentos, os mesmos estados podem aparecer em forma legível ("em validação documental", "em inspeção"), mas se referem ao mesmo identificador.
 
@@ -50,7 +52,6 @@ flowchart LR
     AT6 --> UC12
 
     UC04 -. dispara .-> UC08
-    UC04 -. documentação inválida\ndispara .-> UC07
     UC05 -. dispara .-> UC08
     UC05 -. inspeção reprovada\ndispara .-> UC07
     UC06 -. dispara .-> UC08
@@ -79,7 +80,7 @@ sequenceDiagram
     SYS-->>OP: Carga registrada (status: Registrada)
 
     AD->>SYS: Validar documentação da carga
-    SYS-->>AD: Documentação válida (status: EmValidacaoDocumental → EmInspecao)
+    SYS-->>AD: Documentação válida (status: EmAnalise → EmInspecao)
 
     AQ->>SYS: Solicitar / registrar inspeção
     SYS-->>AQ: Inspeção aprovada
@@ -153,8 +154,8 @@ sequenceDiagram
 | **Objetivo** | Anexar e validar os documentos obrigatórios de uma carga química. |
 | **Ator** | Analista de Documentação |
 | **Entrada esperada** | Identificador da carga, tipo de documento, número e período de validade. |
-| **Saída esperada** | Documento(s) registrado(s) com status `Válido` ou `Inválido`; quando todos os documentos obrigatórios estiverem válidos, a carga avança de status (`Registrada` → `EmValidacaoDocumental` → apta a seguir para inspeção). |
-| **Principais regras de negócio** | `RN04` — uma carga química não pode ser liberada sem documentação obrigatória válida. |
+| **Saída esperada** | Documento(s) registrado(s) com status `Válido` ou `Inválido`; quando todos os documentos obrigatórios estiverem válidos, a carga avança de status (`Registrada` → `EmAnalise` → apta a seguir para inspeção). |
+| **Principais regras de negócio** | `RN04`/`RN17` — uma carga química não pode ser liberada sem documentação obrigatória válida (completa e não vencida). |
 | **Possíveis erros/exceções** | Documento vencido; documento de tipo não reconhecido; carga inexistente; carga já cancelada ou bloqueada. |
 
 ### UC05 — Solicitar inspeção
@@ -184,11 +185,11 @@ sequenceDiagram
 | Campo | Descrição |
 |---|---|
 | **Objetivo** | Impedir a movimentação de uma carga que não atenda a alguma regra de negócio ou de segurança. |
-| **Ator** | Gestor Operacional (bloqueio manual) ou sistema (bloqueio automático decorrente de inspeção reprovada ou documentação inválida) |
+| **Ator** | Gestor Operacional (bloqueio manual) ou sistema (bloqueio automático decorrente de inspeção reprovada) |
 | **Entrada esperada** | Identificador da carga; motivo do bloqueio. |
 | **Saída esperada** | Carga com status `Bloqueada`. |
-| **Principais regras de negócio** | `RN05` — uma carga bloqueada não pode entrar em movimentação. |
-| **Possíveis erros/exceções** | Carga já liberada; carga já cancelada. |
+| **Principais regras de negócio** | `RN05` — uma carga bloqueada não pode entrar em movimentação; `RN14` — bloqueio só é permitido a partir de `EmInspecao`. |
+| **Possíveis erros/exceções** | Carga em qualquer status diferente de `EmInspecao` (409 `TRANSICAO_INVALIDA`). |
 
 ### UC08 — Atualizar status da carga
 
@@ -209,8 +210,8 @@ sequenceDiagram
 | **Ator** | Gestor Operacional |
 | **Entrada esperada** | Identificador da carga; motivo do cancelamento. |
 | **Saída esperada** | Carga com status `Cancelada`. |
-| **Principais regras de negócio** | `RN06` — uma carga cancelada não pode ser liberada. |
-| **Possíveis erros/exceções** | Carga já cancelada; carga já liberada e em movimentação (cancelamento pós-liberação exige tratamento específico, previsto para fases futuras). |
+| **Principais regras de negócio** | `RN06` — uma carga cancelada não pode ser liberada; `RN15` — terminais (`Finalizada`, `Cancelada`) são imutáveis. |
+| **Possíveis erros/exceções** | Carga já em um estado terminal (`Finalizada` ou `Cancelada`); motivo não informado. Cancelamento é permitido a partir de `Registrada`, `EmAnalise`, `EmInspecao`, `Liberada` ou `Bloqueada`. |
 
 ### UC10 — Consultar cargas por status
 

@@ -1,5 +1,7 @@
 # Diagrama de Domínio — Agregados e Entidades
 
+> **Histórico de alterações:** revisado na Fase 2 (ADR-13) — `StatusCarga` passou de 6 para 8 membros; `ProdutoQuimico` e `CargaQuimica` ganharam novos atributos exigidos pelo contrato de API da Fase 2.
+
 Diagrama representando as entidades, objetos de valor e agregados definidos em [`../dominio.md`](../dominio.md), com as regras consolidadas em [`../regras-de-negocio.md`](../regras-de-negocio.md).
 
 ## Legenda
@@ -23,16 +25,22 @@ classDiagram
         <<Aggregate Root>>
         +id: string
         +nome: string
-        +status: "Ativo" | "Inativo"
         +descricao: string
+        +numeroOnu: string
+        +grupoCompatibilidade: string
+        +status: "Ativo" | "Inativo"
     }
 
     class CargaQuimica {
         <<Aggregate Root>>
         +id: string
+        +codigo: string
         +produtoQuimicoId: string
         +responsavelTecnicoId: string
         +areaArmazenamentoId: string
+        +origem: string
+        +destino: string
+        +dataEntrada: Date
         +status: StatusCarga
         +aceiteResponsavelTecnico: DateTime
         +historicoStatus: TransicaoStatus[]
@@ -97,10 +105,12 @@ classDiagram
     class StatusCarga {
         <<Value Object>>
         Registrada
-        EmValidacaoDocumental
+        EmAnalise
         EmInspecao
         Liberada
         Bloqueada
+        EmMovimentacao
+        Finalizada
         Cancelada
     }
 
