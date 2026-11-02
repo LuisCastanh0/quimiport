@@ -1,0 +1,14 @@
+node_modules
+dist
+generated
+coverage
+.git
+.github
+docs
+tests
+*.md
+.env
+.env.*
+!.env.example
+*.pdf
+*.mp4

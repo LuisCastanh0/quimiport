@@ -1,5 +1,7 @@
 # Arquitetura — QuimiPort
 
+> **Histórico de alterações:** revisado na Fase 2 (ADR-04, ADR-09, ADR-11) — a camada `Interfaces` deixou de estar "reservada para próximas fases": `interfaces/http/` existe de fato (Fastify), assim como `infrastructure/persistence/prisma/` ao lado dos repositórios em memória (mantidos como fakes de teste). A árvore de pastas na seção abaixo é a real, não mais a proposta da Fase 1.
+
 Este documento cobre a arquitetura proposta para o QuimiPort e a organização inicial de pastas/responsabilidades. As justificativas de cada decisão (por que separar em camadas, por que TypeScript, como evoluir) ficam em [`decisoes-arquiteturais.md`](decisoes-arquiteturais.md); a ideia aqui é descrever **como** a arquitetura se estrutura.
 
 ## Estilo arquitetural
@@ -19,8 +21,8 @@ Quatro camadas, com dependência sempre apontando para dentro (em direção ao d
 
 ```mermaid
 flowchart TD
-    subgraph INT["Interfaces — futuro: API REST / CLI / Web"]
-        I1["Controllers / Adapters de entrada<br/>(não implementado nesta fase)"]
+    subgraph INT["Interfaces — API REST (Fastify, Fase 2)"]
+        I1["Controllers finos + rotas + schemas Zod<br/>Swagger UI em /docs"]
     end
 
     subgraph APP["Application — Casos de Uso"]
@@ -34,8 +36,8 @@ flowchart TD
     end
 
     subgraph INF["Infrastructure"]
-        F1["Implementações de repositório<br/>(nesta fase: em memória)"]
-        F2["Integrações externas<br/>(futuras fases)"]
+        F1["Repositórios Prisma (PostgreSQL)<br/>+ repositórios em memória (fakes de teste)"]
+        F2["PinoLogger, SystemClock, UuidGenerator"]
     end
 
     I1 --> A1
@@ -53,82 +55,58 @@ flowchart TD
 
 ## Organização de pastas
 
-Estrutura inicial proposta:
+Estrutura real a partir da Fase 2 (substitui a árvore proposta na Fase 1):
 
 ```
 quimiport/
-├── README.md
-├── docs/                                   # documentação
+├── .github/workflows/ci.yml
+├── docker/postgres/init.sql
+├── docs/
+│   ├── api/openapi.json                    # exportado via `npm run openapi:export`
+│   ├── diagramas/
 │   └── ...
+├── prisma/{schema.prisma, migrations/, seed.ts}
+├── generated/prisma/                        # client Prisma gerado (gitignored)
 ├── src/
+│   ├── main.ts                              # bootstrap (lê env, monta container, inicia o servidor)
+│   ├── container.ts                         # composição manual dos casos de uso (sem container de DI)
 │   ├── domain/
-│   │   ├── carga-quimica/                  # agregado raiz do domínio
-│   │   │   ├── CargaQuimica.ts
-│   │   │   ├── DocumentoCarga.ts           # entidade interna ao agregado
-│   │   │   ├── Inspecao.ts                 # entidade interna ao agregado
-│   │   │   ├── value-objects/
-│   │   │   │   ├── Quantidade.ts
-│   │   │   │   ├── ClassificacaoRisco.ts
-│   │   │   │   ├── StatusCarga.ts
-│   │   │   │   └── PeriodoValidade.ts
-│   │   │   ├── ICargaQuimicaRepository.ts  # porta (interface)
-│   │   │   └── errors/
-│   │   │       └── CargaQuimicaError.ts
+│   │   ├── carga-quimica/                   # agregado raiz — igual à Fase 1, + regras.ts, transicoes.ts
 │   │   ├── produto-quimico/
-│   │   │   ├── ProdutoQuimico.ts
-│   │   │   ├── IProdutoQuimicoRepository.ts
-│   │   │   └── errors/
 │   │   ├── responsavel-tecnico/
-│   │   │   ├── ResponsavelTecnico.ts
-│   │   │   ├── value-objects/
-│   │   │   │   └── RegistroProfissional.ts
-│   │   │   └── IResponsavelTecnicoRepository.ts
-│   │   └── area-armazenamento/
-│   │       ├── AreaArmazenamento.ts
-│   │       └── IAreaArmazenamentoRepository.ts
-│   │
+│   │   └── area-armazenamento/              # modelado, sem endpoint na Fase 2
 │   ├── application/
-│   │   └── use-cases/
-│   │       ├── cadastrar-produto-quimico/          # UC01
-│   │       ├── inativar-produto-quimico/           # UC02
-│   │       ├── registrar-carga-quimica/            # UC03
-│   │       ├── validar-documentacao-carga/         # UC04
-│   │       ├── solicitar-inspecao/                 # UC05
-│   │       ├── liberar-carga-quimica/              # UC06
-│   │       ├── bloquear-carga-quimica/             # UC07
-│   │       ├── cancelar-carga-quimica/             # UC09
-│   │       ├── assumir-responsabilidade-tecnica/   # UC12
-│   │       ├── consultar-cargas-por-status/        # UC10
-│   │       └── consultar-historico-carga/          # UC11
-│   │
+│   │   ├── IUseCase.ts
+│   │   ├── ports/ {IClock.ts, IIdGenerator.ts, ILogger.ts}
+│   │   └── use-cases/ {carga-quimica/, produto-quimico/, responsavel-tecnico/}
 │   ├── infrastructure/
+│   │   ├── config/env.ts                    # Zod valida as env vars
+│   │   ├── logging/PinoLogger.ts
 │   │   ├── persistence/
-│   │   │   └── in-memory/
-│   │   │       ├── InMemoryCargaQuimicaRepository.ts
-│   │   │       ├── InMemoryProdutoQuimicoRepository.ts
-│   │   │       ├── InMemoryResponsavelTecnicoRepository.ts
-│   │   │       └── InMemoryAreaArmazenamentoRepository.ts
-│   │   └── config/
-│   │
-│   ├── interfaces/                          # reservado para próximas fases
-│   │   └── http/                            # vazio nesta fase (API REST futura)
-│   │
-│   └── shared/
-│       ├── types/                           # tipos e contratos compartilhados
-│       └── errors/                          # erros de domínio comuns
-│
+│   │   │   ├── in-memory/                   # mantidos como fakes de teste
+│   │   │   └── prisma/ {client.ts, repositories/, mappers/}
+│   │   └── system/ {SystemClock.ts, UuidGenerator.ts}
+│   ├── interfaces/http/
+│   │   ├── server.ts                        # buildServer(container) — usado por main.ts e pelos testes
+│   │   ├── plugins/ {swagger.ts, error-handler.ts, request-logging.ts}
+│   │   ├── routes/ {produtos-quimicos, cargas-quimicas, responsaveis-tecnicos, health}.routes.ts
+│   │   ├── controllers/                     # thin: parse -> caso de uso -> resposta
+│   │   └── schemas/                         # Zod (request/response) por recurso
+│   └── shared/{types/, errors/DomainError.ts}
 ├── tests/
-│   ├── unit/
-│   │   ├── domain/
-│   │   └── application/
-│   └── integration/                         # reservado para próximas fases
-│
-├── package.json
-└── tsconfig.json
+│   ├── unit/{domain/, application/}
+│   ├── integration/{persistence/, http/}
+│   └── support/ {builders/, setup-db.ts, test-server.ts}
+├── scripts/export-openapi.ts
+├── Dockerfile · docker-compose.yml · .dockerignore · .env.example · .nvmrc
+├── eslint.config.js · tsconfig.json · vitest.config.ts · package.json
+└── README.md
 ```
+
+A tabela de vocabulário PDF -> este projeto (rotas, controllers, services, etc.) está no README (seção "Vocabulário").
 
 ### Por que essa organização
 
 - **Uma pasta por agregado dentro de `domain/`**, e não uma pasta genérica `entities/` — assim fica mais claro que cada agregado é uma unidade coesa (entidades internas, VOs e porta de repositório vivem juntos), o que ajuda a evitar que regras de um agregado vazem para outro.
-- **`UC08 — Atualizar status da carga` não tem pasta própria em `application/use-cases/`.** Ele é, na prática, uma transição de estado interna ao agregado `Carga Química` (ex.: um método `transicionarStatus()`), invocada pelos demais casos de uso (UC04, UC05, UC06, UC07, UC09, UC12) — não um caso de uso disparado diretamente por um ator externo. Mantê-lo dentro do domínio, e não como um serviço de aplicação exposto, é consistente com o princípio de concentração de regras definido em [`regras-de-negocio.md`](regras-de-negocio.md).
+- **`UC08 — Atualizar status da carga`** foi, na Fase 1, descrito como transição interna sem caso de uso próprio. A Fase 2 adiciona o endpoint genérico `PATCH /cargas-quimicas/:id/status` (§7.1 das instruções da Fase 2) e, com ele, `AtualizarStatusCarga` em `application/use-cases/carga-quimica/`. A regra em si continua só no domínio (`CargaQuimica.transicionarPara`) — o caso de uso apenas carrega a carga, chama `transicionarPara` e salva; os endpoints dedicados (`/liberar`, `/bloquear`, `/cancelar`) chamam seus próprios casos de uso, que por sua vez chamam os métodos wrapper (`liberar()`, `bloquear()`, `cancelar()`) do mesmo agregado — nunca duplicando a tabela de transições.
 - **As interfaces de repositório ficam no `domain/`, não no `infrastructure/`** — é a aplicação do princípio de inversão de dependência: o domínio define o contrato (`ICargaQuimicaRepository`), e a infraestrutura o implementa. Isso é o que possibilita testar os casos de uso com um repositório em memória (fase atual) e trocar por um repositório real (próximas fases) sem alterar domínio nem aplicação.

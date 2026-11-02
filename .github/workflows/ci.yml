@@ -1,0 +1,93 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+    branches: [main]
+
+env:
+  NODE_VERSION: "24"
+
+jobs:
+  build-and-test:
+    name: Lint, typecheck, build e testes
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: quimiport
+          POSTGRES_PASSWORD: quimiport
+          POSTGRES_DB: quimiport_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U quimiport -d quimiport_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DATABASE_URL: postgresql://quimiport:quimiport@localhost:5432/quimiport_test?schema=public
+      DATABASE_URL_TEST: postgresql://quimiport:quimiport@localhost:5432/quimiport_test?schema=public
+      NODE_ENV: test
+      LOG_LEVEL: silent
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Configurar Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v7
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Gerar client Prisma
+        run: npx prisma generate
+
+      - name: Lint (inclui regras de fronteira entre camadas)
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Build
+        run: npm run build
+
+      - name: Testes unitários (sem banco)
+        run: npm run test:unit
+
+      - name: Aplicar migrações no Postgres de teste
+        run: npx prisma migrate deploy
+
+      - name: Testes de integração (Postgres real)
+        run: npm run test:coverage
+
+      - name: Exportar OpenAPI
+        run: npm run openapi:export
+
+      - name: Upload do relatório de cobertura
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: coverage-report
+          path: coverage/
+          retention-days: 14
+
+  docker:
+    name: Validação do Docker
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Build da imagem (sem push)
+        run: docker build -t quimiport:ci .
+
+      - name: Validar docker-compose.yml
+        run: docker compose config -q

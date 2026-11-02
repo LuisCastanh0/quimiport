@@ -1,0 +1,183 @@
+// Schema Prisma — QuimiPort (Fase 2). Ver `docs/modelagem-de-dados.md` para
+// o detalhamento de cada tabela/coluna e `docs/diagramas/er-fisico.md` para
+// o diagrama ER físico.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum StatusProduto {
+  Ativo
+  Inativo
+
+  @@map("status_produto")
+}
+
+enum StatusCarga {
+  Registrada
+  EmAnalise
+  EmInspecao
+  Liberada
+  Bloqueada
+  EmMovimentacao
+  Finalizada
+  Cancelada
+
+  @@map("status_carga")
+}
+
+enum UnidadeMedida {
+  kg
+  L
+  ton
+
+  @@map("unidade_medida")
+}
+
+enum TipoDocumento {
+  FichaSeguranca
+  LaudoTecnico
+  LicencaTransporte
+
+  @@map("tipo_documento")
+}
+
+enum StatusValidacaoDocumento {
+  Pendente
+  Valido
+  Invalido
+
+  @@map("status_validacao_documento")
+}
+
+enum ResultadoInspecao {
+  Pendente
+  Aprovada
+  Reprovada
+
+  @@map("resultado_inspecao")
+}
+
+/// Classe de risco ONU (1-9). Modelada como VARCHAR(1) + CHECK (não como
+/// enum Postgres) porque identificadores de enum Prisma não podem começar
+/// com dígito — ver docs/modelagem-de-dados.md.
+model ProdutoQuimico {
+  id                   String        @id @default(uuid()) @db.Uuid
+  nome                 String        @unique
+  descricao            String?
+  numeroOnu            String?       @map("numero_onu")
+  classeRisco          String        @map("classe_risco") @db.VarChar(1)
+  grupoCompatibilidade String        @map("grupo_compatibilidade")
+  status               StatusProduto @default(Ativo)
+  createdAt            DateTime      @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt            DateTime      @updatedAt @map("updated_at") @db.Timestamptz
+
+  cargas CargaQuimica[]
+
+  @@map("produtos_quimicos")
+}
+
+model ResponsavelTecnico {
+  id             String   @id @default(uuid()) @db.Uuid
+  nome           String
+  registroNumero String   @map("registro_numero")
+  registroOrgao  String   @map("registro_orgao")
+  especialidade  String?
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt      DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  cargas CargaQuimica[]
+
+  @@map("responsaveis_tecnicos")
+}
+
+model CargaQuimica {
+  id                         String        @id @default(uuid()) @db.Uuid
+  codigo                     String        @unique
+  produtoQuimicoId           String        @map("produto_quimico_id") @db.Uuid
+  quantidadeValor            Decimal       @map("quantidade_valor") @db.Decimal(14, 3)
+  unidadeMedida              UnidadeMedida @map("unidade_medida")
+  origem                     String
+  destino                    String
+  responsavelTecnicoId       String        @map("responsavel_tecnico_id") @db.Uuid
+  classeRisco                String        @map("classe_risco") @db.VarChar(1)
+  status                     StatusCarga   @default(Registrada)
+  aceiteResponsavelTecnicoEm DateTime?     @map("aceite_responsavel_tecnico_em") @db.Timestamptz
+  dataEntrada                DateTime      @map("data_entrada") @db.Timestamptz
+  version                    Int           @default(0)
+  createdAt                  DateTime      @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt                  DateTime      @updatedAt @map("updated_at") @db.Timestamptz
+
+  produtoQuimico     ProdutoQuimico         @relation(fields: [produtoQuimicoId], references: [id], onDelete: Restrict)
+  responsavelTecnico ResponsavelTecnico     @relation(fields: [responsavelTecnicoId], references: [id], onDelete: Restrict)
+  documentos         DocumentoCarga[]
+  inspecoes          Inspecao[]
+  historico          HistoricoStatusCarga[]
+
+  @@index([status])
+  @@index([produtoQuimicoId])
+  @@index([codigo])
+  @@map("cargas_quimicas")
+}
+
+model DocumentoCarga {
+  id              String                   @id @default(uuid()) @db.Uuid
+  cargaId         String                   @map("carga_id") @db.Uuid
+  tipo            TipoDocumento
+  numero          String
+  dataEmissao     DateTime                 @map("data_emissao") @db.Timestamptz
+  dataValidade    DateTime                 @map("data_validade") @db.Timestamptz
+  statusValidacao StatusValidacaoDocumento @map("status_validacao") @default(Pendente)
+  createdAt       DateTime                 @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt       DateTime                 @updatedAt @map("updated_at") @db.Timestamptz
+
+  carga CargaQuimica @relation(fields: [cargaId], references: [id], onDelete: Cascade)
+
+  @@unique([cargaId, tipo])
+  @@map("documentos_carga")
+}
+
+model Inspecao {
+  id                  String            @id @default(uuid()) @db.Uuid
+  cargaId             String            @map("carga_id") @db.Uuid
+  dataInspecao        DateTime          @map("data_inspecao") @db.Timestamptz
+  inspetorResponsavel String            @map("inspetor_responsavel")
+  resultado           ResultadoInspecao @default(Pendente)
+  parecer             String?
+  createdAt           DateTime          @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt           DateTime          @updatedAt @map("updated_at") @db.Timestamptz
+
+  carga CargaQuimica @relation(fields: [cargaId], references: [id], onDelete: Cascade)
+
+  @@map("inspecoes")
+}
+
+/// Append-only — nunca é atualizado/apagado, só inserido. Alimenta UC11.
+model HistoricoStatusCarga {
+  id             String       @id @default(uuid()) @db.Uuid
+  cargaId        String       @map("carga_id") @db.Uuid
+  statusAnterior StatusCarga? @map("status_anterior")
+  statusNovo     StatusCarga  @map("status_novo")
+  motivo         String?
+  ocorridoEm     DateTime     @map("ocorrido_em") @db.Timestamptz
+
+  carga CargaQuimica @relation(fields: [cargaId], references: [id], onDelete: Cascade)
+
+  @@map("historico_status_carga")
+}
+
+/// Modelado, mas sem endpoint na Fase 2 (fora do contrato de API do PDF) —
+/// ver docs/modelagem-de-dados.md, "como os dados podem evoluir".
+model AreaArmazenamento {
+  id          String  @id @default(uuid()) @db.Uuid
+  codigo      String  @unique
+  capacidade  Decimal? @db.Decimal(14, 3)
+  restricoes  String?
+
+  @@map("areas_armazenamento")
+}

@@ -1,5 +1,7 @@
 # Plano de Qualidade de Software — QuimiPort
 
+> **Histórico de alterações:** revisado na Fase 2 (ADR-13, ADR-14) — os testes de integração, antes previstos como "próximas fases", agora existem de fato (Vitest + Supertest/`inject` contra PostgreSQL real); o cenário 14 foi atualizado para a matriz de 8 estados / 11 transições; RN14–RN17 foram incorporadas ao plano.
+
 Este documento cobre o plano de qualidade do QuimiPort e como o projeto poderá ser testado nas próximas fases. Ele parte direto das regras de negócio ([`regras-de-negocio.md`](regras-de-negocio.md)) e dos casos de uso ([`casos-de-uso.md`](casos-de-uso.md)) já documentados.
 
 ## Regras de negócio que precisam ser testadas
@@ -41,12 +43,10 @@ flowchart BT
 - Padrão de escrita: *Given / When / Then* (ou Arrange-Act-Assert), um cenário por teste, nomeado pela regra ou comportamento esperado — não pela implementação.
 - Meta de cobertura: 100% dos caminhos de validação de RN01–RN13; cobertura geral do restante do código a ser definida pelo grupo na implementação, sem virar objetivo em si (cobertura alta não substitui teste que valida a regra certa).
 
-## Testes de integração (próximas fases)
+## Testes de integração (Fase 2 — implementados)
 
-
-
-- Repositórios reais (ex.: contra um banco de dados de teste, descartável por execução) validados contra o mesmo contrato de interface já usado pelos repositórios em memória, garantindo que a implementação real respeita o que o domínio espera.
-- Quando a API REST existir (ver [`decisoes-arquiteturais.md`](decisoes-arquiteturais.md), ADR-04), testes de integração de contrato HTTP (status code, formato de payload), sem duplicar a lógica de negócio, que já está coberta nos testes unitários.
+- Repositórios Prisma validados contra o mesmo **contrato de testes** já usado pelos repositórios em memória (`tests/integration/persistence/`), garantindo que a implementação real respeita o que o domínio espera. Banco de teste PostgreSQL descartável (`DATABASE_URL_TEST`), truncado entre execuções.
+- Testes de integração HTTP (`tests/integration/http/`) usando `buildServer(deps)` com Supertest/`inject`, cobrindo status code, formato de payload e o contrato de erro único (§7.3 das instruções da Fase 2), sem duplicar a lógica de negócio, já coberta pelos testes unitários de domínio e aplicação.
 
 ## Validação dos fluxos principais
 
@@ -76,7 +76,14 @@ flowchart BT
 | 11 | Não permitir liberação de carga sem aceite formal do responsável técnico | RN13 | UC12, UC06 |
 | 12 | Não permitir movimentação de carga bloqueada | RN05 | UC07 |
 | 13 | Não permitir liberação de carga cancelada | RN06 | UC06, UC09 |
-| 14 | Validar cada transição de status permitida e rejeitar transições não permitidas (ex.: `Cancelada → Liberada`) | RN05, RN06 | UC08 (interno) |
+| 14 | Validar, para a matriz de 8 estados, cada uma das 11 transições permitidas e rejeitar as 53 transições restantes (incl. auto-transições), via `it.each` (ex.: `Cancelada → Liberada`, `Finalizada → EmMovimentacao`, `Bloqueada → EmMovimentacao`, `Registrada → Finalizada`, `EmInspecao → Finalizada`, `Liberada → Registrada`) | RN05, RN06, RN14, RN15 | UC08 (interno) |
+| 15 | Não permitir liberação sem RT vinculado | RN12 | UC03, UC06 |
+| 16 | Não permitir liberação sem aceite formal do RT (duplicado aqui por cobrir também o 409 de aceite já registrado) | RN13 | UC12 |
+| 17 | Não permitir nenhuma alteração (status, documento, inspeção, aceite) em carga `Finalizada` ou `Cancelada` | RN15 | UC08 (interno) |
+| 18 | Documento vencido, inválido ou faltando impede avanço para `EmInspecao` | RN17 | UC04 |
+| 19 | Inspeção `Reprovada` aciona bloqueio automático da carga | RN07 | UC05, UC07 |
+| 20 | Nome de produto duplicado é rejeitado (409) | RN08 (unicidade) | UC01 |
+| 21 | Atualização concorrente da mesma carga gera conflito de versão (409, *optimistic locking*) | — (infraestrutura) | UC08 |
 
 ## Rastreabilidade
 

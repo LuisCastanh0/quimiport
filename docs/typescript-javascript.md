@@ -1,5 +1,7 @@
 # TypeScript e JavaScript Avançado — QuimiPort
 
+> **Histórico de alterações:** revisado na Fase 2 (ADR-12, ADR-13) — o enum `StatusCarga` passou de 6 para 8 membros; a decisão entre `Result<T,E>` e exceções, deixada aberta na Fase 1, foi resolvida em favor de `DomainError` lançada (`throw`), mapeada para HTTP em um único ponto (ver seção "Tratamento de erros" abaixo).
+
 Este documento cobre como JavaScript e TypeScript serão usados na construção futura do QuimiPort. As decisões aqui se aplicam às entidades, agregados e objetos de valor definidos em [`dominio.md`](dominio.md) e à estrutura de camadas de [`arquitetura.md`](arquitetura.md). Os exemplos são conceituais, servem para ilustrar a modelagem planejada, não são código de produção.
 
 ## Tipagem forte
@@ -92,10 +94,12 @@ Usados para os conjuntos fechados de valores já definidos em [`diagramas/fluxo-
 ```typescript
 enum StatusCarga {
   Registrada = "Registrada",
-  EmValidacaoDocumental = "EmValidacaoDocumental",
+  EmAnalise = "EmAnalise",
   EmInspecao = "EmInspecao",
   Liberada = "Liberada",
   Bloqueada = "Bloqueada",
+  EmMovimentacao = "EmMovimentacao",
+  Finalizada = "Finalizada",
   Cancelada = "Cancelada",
 }
 
@@ -176,15 +180,7 @@ abstract class DomainError extends Error {
 class CargaQuimicaError extends DomainError {}
 ```
 
-Para os fluxos de validação de negócio **esperados** (ex.: tentativa de liberar carga sem documentação), a preferência é por um tipo `Result<T, E>` em vez de lançar exceção — erro de regra de negócio não é uma falha do sistema, é um resultado possível do caso de uso:
-
-```typescript
-type Result<T, E> =
-  | { sucesso: true; valor: T }
-  | { sucesso: false; erro: E };
-```
-
-Exceções (`throw`) ficam reservadas para falhas verdadeiramente excepcionais (infraestrutura indisponível, dado corrompido), não para o fluxo normal de regras de negócio. A escolha final entre usar `Result` de forma consistente em todo o domínio ou exceções de domínio tipadas ainda vai ser validada pelo grupo na implementação, mas a diretriz de não usar exceção para controle de fluxo de negócio já está definida desde já.
+**Decisão da Fase 2 (ADR-12):** o grupo optou por **lançar (`throw`) `DomainError`** tipada também para os fluxos de validação de negócio esperados (ex.: tentativa de liberar carga sem documentação), abandonando a ideia de `Result<T, E>` levantada na Fase 1. `DomainError` carrega `{ regra, tipo: 'validacao' | 'regra' | 'conflito' | 'naoEncontrado', codigo, mensagem }`. Um único ponto na borda HTTP (`interfaces/http/plugins/error-handler.ts`) mapeia `tipo → status code`, evitando que cada caso de uso reimplemente essa tradução e evitando a verbosidade de propagar `Result` por várias camadas de chamada. Falhas verdadeiramente excepcionais (infraestrutura indisponível, dado corrompido) também usam `throw`, mas com erros não tipados como `DomainError`, tratados pelo mesmo handler como `ERRO_INTERNO` (500), sem detalhe interno na resposta.
 
 ## Organização de contratos e tipos compartilhados
 

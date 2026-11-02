@@ -1,5 +1,7 @@
 # Domínio — QuimiPort
 
+> **Histórico de alterações:** revisado na Fase 2 (ADR-13 em [`decisoes-arquiteturais.md`](decisoes-arquiteturais.md)) — o conjunto de status da Carga Química passou de 6 para 8 estados e os campos de `Carga Química` e `Produto Químico` foram ampliados para atender ao contrato de API da Fase 2 (ver [`regras-de-negocio.md`](regras-de-negocio.md) RN14–RN17).
+
 Este documento registra o entendimento do domínio e a modelagem feita com Domain-Driven Design (DDD): linguagem ubíqua, entidades, objetos de valor e agregados. Casos de uso e regras de em documentos próprios ([`casos-de-uso.md`](casos-de-uso.md) e [`regras-de-negocio.md`](regras-de-negocio.md)) e são referenciados aqui quando necessário.
 
 ## 1. Entendimento do domínio
@@ -78,7 +80,7 @@ No Porto de Santos, o registro de cargas químicas ainda é feito, em boa parte,
 | **Documentação Obrigatória** | Conjunto de documentos exigidos para que uma carga possa ser liberada (ex.: ficha de segurança, laudo técnico, licença de transporte). |
 | **Responsável Técnico** | Profissional habilitado que assume formalmente a responsabilidade técnica por uma carga. |
 | **Inspeção** | Verificação técnica realizada sobre uma carga para atestar sua conformidade antes da liberação. |
-| **Status da Carga** | Estado atual da carga no fluxo operacional: `Registrada`, `EmValidacaoDocumental`, `EmInspecao`, `Liberada`, `Bloqueada`, `Cancelada`.  Ver [`diagramas/fluxo-status.md`](diagramas/fluxo-status.md) e a nota sobre nomes de status em [`casos-de-uso.md`](casos-de-uso.md). |
+| **Status da Carga** | Estado atual da carga no fluxo operacional: `Registrada`, `EmAnalise`, `EmInspecao`, `Liberada`, `Bloqueada`, `EmMovimentacao`, `Finalizada`, `Cancelada`.  Ver [`diagramas/fluxo-status.md`](diagramas/fluxo-status.md) e a nota sobre nomes de status em [`casos-de-uso.md`](casos-de-uso.md). |
 | **Liberação** | Ato de autorizar uma carga para movimentação portuária, condicionado ao cumprimento de todas as regras de segurança. |
 | **Bloqueio** | Ato de impedir a movimentação de uma carga por descumprimento de alguma regra de negócio ou de segurança. |
 | **Área de Armazenamento** | Local físico do porto onde uma carga pode ser mantida até sua liberação. |
@@ -91,7 +93,7 @@ No Porto de Santos, o registro de cargas químicas ainda é feito, em boa parte,
 | Campo | Descrição |
 |---|---|
 | **Responsabilidade** | Representar um produto químico catalogado, com sua classificação de risco e status de disponibilidade para uso em novas cargas. |
-| **Atributos principais** | `id`, `nome`, `classificacaoRisco` (VO), `status` (`Ativo` \| `Inativo`), `descricao` |
+| **Atributos principais** | `id`, `nome`, `descricao`, `numeroOnu`, `classificacaoRisco` (VO), `grupoCompatibilidade`, `status` (`Ativo` \| `Inativo`), `createdAt`, `updatedAt` |
 | **Regras relacionadas** | Não pode ser cadastrado sem nome; não pode ser cadastrado sem classe de risco; uma vez inativo, não pode ser associado a novas cargas. |
 | **Relacionamentos** | Um Produto Químico pode ser referenciado por múltiplas Cargas Químicas (1:N). |
 
@@ -100,7 +102,7 @@ No Porto de Santos, o registro de cargas químicas ainda é feito, em boa parte,
 | Campo | Descrição |
 |---|---|
 | **Responsabilidade** | Concentrar o ciclo de vida de uma carga: produto associado, quantidade, documentação, responsável técnico, inspeções, status e histórico. É a raiz de agregado que garante a consistência de todas essas regras em conjunto. |
-| **Atributos principais** | `id`, `produtoQuimicoId`, `quantidade` (VO), `classificacaoRisco` (VO), `status` (VO/enum), `responsavelTecnicoId`, `aceiteResponsavelTecnico` (data/hora da confirmação formal do responsável técnico), `documentos` (lista de Documento da Carga), `inspecoes` (lista de Inspeção), `areaArmazenamentoId`, `historicoStatus` |
+| **Atributos principais** | `id`, `codigo` (único, formato `CQ-<ano>-<sequência 6 dígitos>`), `produtoQuimicoId`, `quantidade` (VO), `classificacaoRisco` (VO), `origem`, `destino`, `dataEntrada`, `status` (VO/enum), `responsavelTecnicoId`, `aceiteResponsavelTecnico` (data/hora da confirmação formal do responsável técnico), `documentos` (lista de Documento da Carga), `inspecoes` (lista de Inspeção), `areaArmazenamentoId`, `historicoStatus` |
 | **Regras relacionadas** | Não pode ser registrada sem produto associado; não pode ser registrada com produto inativo; não pode ser registrada sem classificação de risco; não pode ser liberada sem documentação obrigatória válida; não pode ser liberada sem que o responsável técnico tenha confirmado formalmente a responsabilidade pela carga (ver UC12 em [`casos-de-uso.md`](casos-de-uso.md)); carga bloqueada não pode ser movimentada; carga cancelada não pode ser liberada; quantidade deve ser maior que zero. (Lista completa em [`regras-de-negocio.md`](regras-de-negocio.md).) |
 | **Relacionamentos** | Referencia um Produto Químico (N:1), um Responsável Técnico (N:1), possui Documentos da Carga (1:N) e Inspeções (1:N), e pode referenciar uma Área de Armazenamento (N:1). |
 
@@ -144,7 +146,7 @@ No Porto de Santos, o registro de cargas químicas ainda é feito, em boa parte,
 
 | Objeto de valor | Atributos | Usado em |
 |---|---|---|
-| **ClassificacaoRisco** | `classeRisco` (ex.: classe ONU), `categoriaPerigo` | Produto Químico, Carga Química |
+| **ClassificacaoRisco** | `classeRisco` (classe ONU, `1`–`9`); `categoriaPerigo` passa a ser um rótulo **derivado** da classe (ex.: classe `3` → "Líquidos inflamáveis"), não mais um campo informado à parte | Produto Químico, Carga Química |
 | **Quantidade** | `valor` (número > 0), `unidadeMedida` (ex.: `kg`, `L`, `ton`) | Carga Química |
 | **RegistroProfissional** | `numero`, `orgaoEmissor` (ex.: CRQ/CREA) | Responsável Técnico |
 | **PeriodoValidade** | `dataEmissao`, `dataValidade` | Documento da Carga |

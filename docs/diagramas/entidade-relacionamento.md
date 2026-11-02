@@ -1,5 +1,7 @@
 # Diagrama de Entidades e Relacionamentos Conceituais
 
+> **Histórico de alterações:** este diagrama permanece como o ER **conceitual** da Fase 1. O ER **físico** (schema PostgreSQL real, via Prisma, com os 8 status e os campos novos de `CargaQuimica`/`ProdutoQuimico`) está em [`er-fisico.md`](er-fisico.md), criado na Fase 2 — ver ADR-13 em [`../decisoes-arquiteturais.md`](../decisoes-arquiteturais.md).
+
 Enquanto o [diagrama de domínio](dominio.md) usa notação DDD (agregados, entidades, objetos de valor, raiz de agregado), este é um **ER conceitual**: mais próximo de como o modelo se traduziria em tabelas relacionais numa fase futura com banco de dados.
 
 Os objetos de valor de [`../dominio.md`](../dominio.md) (`Quantidade`, `ClassificacaoRisco`, `RegistroProfissional`, `PeriodoValidade`) não têm identidade própria — por isso, aqui, aparecem como colunas embutidas na entidade que os usa, e não como tabelas separadas.

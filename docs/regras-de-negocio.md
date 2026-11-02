@@ -1,5 +1,7 @@
 # Regras de Negócio — QuimiPort
 
+> **Histórico de alterações:** revisado na Fase 2 (ADR-13) — adicionadas RN14–RN17, decorrentes da matriz de 8 status e do contrato de API da Fase 2.
+
 Este documento consolida as regras de negócio do QuimiPort. As regras abaixo vêm da lista de exemplos do PDF e das entidades/agregados já definidos em [`dominio.md`](dominio.md); a coluna de casos de uso referencia [`casos-de-uso.md`](casos-de-uso.md).
 
 ## Princípio de concentração das regras
@@ -23,6 +25,10 @@ Seguindo DDD, tratamos as regras de negócio como **invariantes do domínio**, c
 | RN11 | A quantidade da carga deve ser maior que zero. | Objeto de valor `Quantidade`, usado por `Carga Química` | UC03 | Domínio — VO `Quantidade` |
 | RN12 | Toda carga deve possuir um responsável técnico informado. | Agregado `Carga Química` | UC03, UC06 | Domínio — `Carga Química` |
 | RN13 | Uma carga química não pode ser liberada sem que o responsável técnico tenha confirmado formalmente a responsabilidade pela carga (aceite registrado). | Agregado `Carga Química`, campo `aceiteResponsavelTecnico` | UC06, UC12 | Domínio — `Carga Química` |
+| RN14 | Somente as 11 transições de status explicitamente listadas em [`diagramas/fluxo-status.md`](diagramas/fluxo-status.md) são válidas; qualquer outro par (incl. auto-transição) é rejeitado. | Agregado `Carga Química` — tabela de transições (`transicoes.ts`) | UC08 (interno), todos os UCs que mudam status | Domínio — `Carga Química` |
+| RN15 | `Finalizada` e `Cancelada` são estados terminais: nenhuma mudança de status, documento, inspeção ou aceite é permitida a partir deles. | Agregado `Carga Química` | UC04, UC05, UC06, UC07, UC08, UC09, UC12 | Domínio — `Carga Química` |
+| RN16 | O status de um `Produto Químico` só pode ser `Ativo` ou `Inativo`. | Entidade `Produto Químico` (enum) | UC01, UC02 | Domínio — `Produto Químico` |
+| RN17 | A documentação obrigatória de uma carga é composta por um documento de cada tipo (`FichaSeguranca`, `LaudoTecnico`, `LicencaTransporte`); um documento só é considerado válido se `statusValidacao = Valido` e `dataValidade` não estiver vencida. | Agregado `Carga Química`, sobre a coleção `Documento da Carga` (função pura em `carga-quimica/`) | UC04, UC06 | Domínio — `Carga Química` |
 
 > **RN13** foi elaborado pelo grupo ao formalizar o caso de uso UC12 (Assumir responsabilidade técnica), decorrente da descrição de `dominio.md` de que o Responsável Técnico "assume tecnicamente" a carga.
 
