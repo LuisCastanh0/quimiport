@@ -25,18 +25,23 @@ FROM node:${NODE_VERSION}-slim AS runtime
 ENV NODE_ENV=production
 WORKDIR /app
 
-COPY package.json package-lock.json ./
+# Usuário não-root já existe na imagem oficial do Node ("node"). Dono do
+# WORKDIR trocado antes de copiar/instalar para que tudo já nasça com o
+# dono certo, evitando um chown -R caro sobre node_modules inteira.
+RUN chown node:node /app
+USER node
+
+COPY --chown=node:node package.json package-lock.json ./
 RUN npm ci --omit=dev \
   && npm cache clean --force
 
-COPY --from=build /app/dist ./dist
-COPY --from=build /app/generated ./generated
-COPY --from=build /app/prisma ./prisma
-COPY prisma7.config.ts ./
-
-# Usuário não-root já existe na imagem oficial do Node ("node").
-RUN chown -R node:node /app
-USER node
+COPY --chown=node:node --from=build /app/dist ./dist
+COPY --chown=node:node --from=build /app/generated ./generated
+COPY --chown=node:node --from=build /app/prisma ./prisma
+# prisma/seed.ts importa direto de src/ (via tsx) — precisa estar presente
+# em runtime para "npm run db:seed" funcionar dentro do container.
+COPY --chown=node:node --from=build /app/src ./src
+COPY --chown=node:node prisma7.config.ts tsconfig.json ./
 
 EXPOSE 3000
 

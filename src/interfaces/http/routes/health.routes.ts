@@ -11,16 +11,32 @@ export async function registrarRotasHealth(app: FastifyInstance, container: Cont
         summary: "Verifica a saúde da API (liveness) e a conectividade com o banco",
         tags: ["Operações"],
         response: {
-          200: z.object({
-            status: z.literal("ok"),
-            bancoDeDados: z.enum(["conectado", "indisponivel"]),
-            timestamp: z.string(),
-          }),
-          503: z.object({
-            status: z.literal("degradado"),
-            bancoDeDados: z.literal("indisponivel"),
-            timestamp: z.string(),
-          }),
+          200: z
+            .object({
+              status: z.literal("ok"),
+              bancoDeDados: z.enum(["conectado", "indisponivel"]),
+              timestamp: z.string(),
+            })
+            .meta({
+              example: {
+                status: "ok",
+                bancoDeDados: "conectado",
+                timestamp: "2026-01-01T12:00:00.000Z",
+              },
+            }),
+          503: z
+            .object({
+              status: z.literal("degradado"),
+              bancoDeDados: z.literal("indisponivel"),
+              timestamp: z.string(),
+            })
+            .meta({
+              example: {
+                status: "degradado",
+                bancoDeDados: "indisponivel",
+                timestamp: "2026-01-01T12:00:00.000Z",
+              },
+            }),
         },
       },
     },
