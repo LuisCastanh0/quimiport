@@ -1,5 +1,5 @@
 // Script de seed — roda com `npm run db:seed` (tsx prisma/seed.ts). Usado
-// para o ambiente de demonstração (ver docs/roteiro-video-fase2.md): cria
+// para o ambiente de demonstração: cria
 // alguns produtos (um deles Inativo), dois responsáveis técnicos e uma
 // carga de exemplo já em EmAnalise.
 import "dotenv/config";

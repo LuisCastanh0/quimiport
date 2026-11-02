@@ -35,7 +35,7 @@ cp .env.example .env            # ajuste DATABASE_URL se necessário
 npm ci
 npm run db:generate             # gera o client Prisma (não exige banco)
 npm run db:migrate              # aplica as migrações no banco apontado por DATABASE_URL
-npm run db:seed                 # opcional — dados de exemplo (ver docs/roteiro-video-fase2.md)
+npm run db:seed                 # opcional — dados de exemplo
 npm run dev                     # http://localhost:3000, com reload automático
 ```
 
@@ -153,7 +153,6 @@ Quatro camadas (Domain, Application, Infrastructure, Interfaces), dependência s
 | [`docs/modelagem-de-dados.md`](docs/modelagem-de-dados.md) | Tabelas, relacionamentos, constraints, controle de status |
 | [`docs/diagramas/`](docs/diagramas/) | Domínio, fluxo de status (8 estados/11 transições), ER conceitual, ER físico, contexto |
 | [`docs/api/openapi.json`](docs/api/openapi.json) | Especificação OpenAPI exportada |
-| [`docs/roteiro-video-fase2.md`](docs/roteiro-video-fase2.md) | Roteiro cronometrado do vídeo de demonstração |
 
 ## Equipe
 
@@ -164,4 +163,4 @@ Quatro camadas (Domain, Application, Infrastructure, Interfaces), dependência s
 ## Vídeos de apresentação
 
 - Fase 1: https://youtu.be/BB3CQ745Bes
-- Fase 2: TODO — link do vídeo de demonstração da Fase 2 (ver [`docs/roteiro-video-fase2.md`](docs/roteiro-video-fase2.md))
+- Fase 2: https://youtu.be/b9H1n6NUb2A
